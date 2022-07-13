@@ -1,0 +1,16 @@
+--- Request for Rasters ---
+
+To: 
+    Planet, Media Programs Lead
+
+Text:
+    I am writing to you on behalf of [ organization ], a non-profit based in [ location ]. Our main focus is [ mission statement ]. We work [ past work ].
+
+    I am contacting you concerning a project that we are currently doing in Kharkiv, Ukraine. We are documenting the destruction of the city center – universities, museums, religious sites, residential apartment buildings, etc. We plan to create an interactive report consisting of testimonies, damage assessments, "cctv" videos of the shelling incident, and a lot of before/after pictures. We want to emulate the experience of walking through the city. The way we have the report's structure planned out is to start completely zoomed out (birds eye view) and guide the reader by zooming in on each destroyed landmark. We downloaded your monthly base maps for June 2022 and June 2021. Unfortunately, the 3m/pixel resolution is too blurry to make out cluster munitions damage. We can only see major direct missile hits of which there are a lot but not for all our incidents of interest. 
+
+    If possible we would be interested in buying two raster images (before/after) taken by your SkySat Collect instrumentation. These two look promising:
+        
+        - 20220709_084456_ssc1_u0006
+        - 20210709_081619_ssc12_u0001
+
+    If you need any additional information, you can reach me by email or phone [ phone number ]. 

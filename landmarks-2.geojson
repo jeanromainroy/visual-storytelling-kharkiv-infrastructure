@@ -1,0 +1,176 @@
+{
+    "type": "FeatureCollection",
+    "name": "landmarks-2",
+    "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+    "features": [  
+        { 
+            "type": "Feature", 
+            "properties": { 
+                "ID": 9,
+                "TYPE": "Education",
+                "NAME": "Regional State Administration Building",
+                "DATE": "2022-03-01"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.236436615379304, 50.00421313429321]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 10,
+                "TYPE": "Culture",
+                "NAME": "Fine Arts Museum",
+                "REF": "https://war-evidence.mkip.gov.ua/2022/03/08/damaged-museum/",
+                "DATE": "2022-03-08"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.238467185176496, 49.998970485185886]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 11,
+                "TYPE": "Education",
+                "NAME": "Kharkiv National Pedagogical University",
+                "REF": "https://war-evidence.mkip.gov.ua/2022/07/06/university-destroyed-but-skovoroda-survived/",
+                "DATE": "2022-07-06"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.31955006498256, 50.02000478683648]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 12,
+                "TYPE": "Education",
+                "NAME": "Kharkiv Karazin University Business School",
+                "REF": "https://war-evidence.mkip.gov.ua/2022/03/03/streets-of-kharkiv-after-air-strikes/",
+                "DATE": "2022-03-02"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.235324474941216, 49.99943286142615]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 13,
+                "TYPE": "Food",
+                "NAME": "Vostorg Shopping Mall",
+                "REF": "https://war-evidence.mkip.gov.ua/2022/06/08/missile-flew-into-a-supermarket/",
+                "DATE": "2022-06-08"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.21902627984307, 50.00950045178235]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 14,
+                "TYPE": "Culture",
+                "NAME": "Kharkiv National Academic Opera and Ballet Theater",
+                "REF": "https://www.classicfm.com/music-news/kharkiv-opera-house-concert-hall-ukraine-attacks/",
+                "DATE": "2022-03-01"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.23220175565996, 49.998915261678285]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 15,
+                "TYPE": "Culture",
+                "NAME": "Drobytsky Yar Holocaust Memorial",
+                "REF": "https://www.businessinsider.com/ukraine-russia-shells-drobitsky-yar-holocaust-memorial-kharkiv2022-3",
+                "DATE": "2022-03-26"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.43943649944171, 49.93246424987677]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 16,
+                "NAME": "Court of Appeal"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.23137839183766, 50.00796782817036]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 17,
+                "NAME": "Historical 'Slovo' building, House 'Word'"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.23434729199441, 50.01171144733675]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 18,
+                "NAME": "Holy Temple of Queen Tamara"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.25915958222481, 50.08765302547932]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 19,
+                "NAME": "Korolenko State Scientific Library"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.23453007669666, 49.990408485678174]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 20,
+                "NAME": "Church of the Holy Myrrh-Bearing Women"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.23582739930355, 49.99848818766983]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 21,
+                "NAME": "Memorial Complex of Glory in Kharkiv"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.26490792842054, 50.03841681772226]
+            } 
+        }
+    ]
+}
+
+
+
+
+
+
