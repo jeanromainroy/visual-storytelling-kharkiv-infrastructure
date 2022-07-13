@@ -107,7 +107,7 @@
         {
             "type": "Feature", 
             "properties": { 
-                "ID": 8,
+                "ID": 9,
                 "NAME": "Apartment Building, Sumska St"
             }, 
             "geometry": { 
@@ -117,9 +117,3 @@
         }
     ]
 }
-
-
-
-
-
-

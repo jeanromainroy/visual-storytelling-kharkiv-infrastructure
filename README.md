@@ -2,7 +2,7 @@
 
 We are documenting the destruction of Kharkiv's city center – universities, museums, religious sites, residential apartment buildings, etc. Albeit digitally, we want to emulate the experience of walking through the city.
 
-![Kharkiv's Destroyed Landmarks](./miscellaneous/incidents.png)
+![Sketch of Destroyed Building, DALL-E](./illustrations/destroyed-building.png)
 
 
 ## Data
@@ -43,6 +43,8 @@ The [landmarks](./landmarks.geojson) selected were from news reports and observe
 
  - [UNESCO](https://www.unesco.org/en/articles/damaged-cultural-sites-ukraine-verified-unesco)
  
+![Kharkiv's Destroyed Landmarks](./illustrations/incidents.png)
+
 
 ### Satellite Imagery
 
