@@ -1,0 +1,415 @@
+{
+    "type": "FeatureCollection",
+    "name": "landmarks-1",
+    "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+    "features": [
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 1,
+                "NAME": "Maxim Gorky Central Park for Culture and Recreation",
+                "DATE": "2022-05-03"
+            }, 
+            "geometry": { 
+                "type": "MultiPoint", 
+                "coordinates": [
+                    [36.245435228443036, 50.0177357160156],
+                    [36.244647461762916, 50.01624340794919],
+                    [36.239440, 50.018456],
+                    [36.243228, 50.019291],
+                    [36.242708, 50.017823],
+                    [36.240792, 50.017491]
+                ]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 2,
+                "NAME": "Palace of Labor"
+            }, 
+            "geometry": { 
+                "type": "MultiPoint", 
+                "coordinates": [
+                    [36.23254099558125, 49.98897538602896],
+                    [36.23233252976288, 49.98945251080527]
+                ]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 3,
+                "NAME": "Акварена, Swimming Pool"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.22411996103149, 49.996414421424205]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 4,
+                "NAME": "Assumption Cathedral",
+                "DATE": "2022-03-03"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.230576938184626, 49.98991509531145]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 5,
+                "NAME": "Marketplace Sumsky"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.238564336664275, 50.01157533110341]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 6,
+                "NAME": "City Hall, Kharkivsʹka Misʹka Rada"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.232383789659245, 49.990063744244004]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 7,
+                "NAME": "Autotransport College"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.23252872022883, 49.99294336237784]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 8,
+                "NAME": "Apartment Building, Mayakovs'koho St, 14"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.24361589969421, 50.00979359968779]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 9,
+                "NAME": "Apartment Building, Sumska St"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.24060916969284, 50.01079441455996]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 10,
+                "NAME": "Commercial Building"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.231547, 49.989703]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 11,
+                "NAME": "Apartment Building"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.23664465789781, 49.987720482615224]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 12,
+                "NAME": "Bank"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.24180507032105, 49.998329945394985]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 13,
+                "NAME": "Academy of Sciences"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.237582, 49.997720]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 14,
+                "NAME": "National Academic Opera and Ballet Theater"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.23250461489541, 49.99903901089538]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 15,
+                "NAME": "Faculty of Economics of Kharkiv National University"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.23553648372453, 49.99937895398078]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 16,
+                "NAME": "Kharkiv Regional State Administration"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.236448625383815, 50.00420931571493]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 17,
+                "NAME": "Market, Червоний"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.33648455283565, 50.024539085108316]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 18,
+                "NAME": "Grocery Store"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.35286034673967, 50.027912888467085]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 19,
+                "NAME": "Gas Station"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.35411708753367, 50.028663458689614]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 20,
+                "NAME": "Dance School"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.35621642318398, 50.03002989019957]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 21,
+                "NAME": "Apartment Building"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.35944169097509, 50.03232018581294]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 22,
+                "NAME": "Hospital"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.36105422049836, 50.03860946315341]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 23,
+                "NAME": "City Park"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.34724015557801, 50.030592659970125]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 24,
+                "NAME": "Train Station"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.36025851266752, 50.019797144650184]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 25,
+                "NAME": "Apartment Building"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.36503249072156, 50.026326281896345]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 26,
+                "NAME": "Apartment Building"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.36166094222152, 50.02679178667818]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 27,
+                "NAME": "Shopping Mall"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.35696896039412, 50.03215007227308]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 28,
+                "NAME": "Elementary School"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.35721088659814, 50.03745912242639]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 29,
+                "NAME": "Apartment Building"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.354444360004464, 50.03762871534753]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 30,
+                "NAME": "Playground"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.35328516758444, 50.03834703048654]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 31,
+                "NAME": "Apartment Building"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.34935753478901, 50.03801573443867]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 32,
+                "NAME": "Shopping Area"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.348131680247924, 50.0388785143991]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 33,
+                "NAME": "Playground"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.352414207830314, 50.04388727055481]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 34,
+                "NAME": "Parking Lot"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.35348905855776, 50.04460566601063]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 35,
+                "NAME": "Church of Holy Great Martyr George"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.34394931252348, 50.03886102260411]
+            } 
+        },
+        {
+            "type": "Feature", 
+            "properties": { 
+                "ID": 36,
+                "NAME": "Cemetery"
+            }, 
+            "geometry": { 
+                "type": "Point", 
+                "coordinates": [36.33887205944451, 50.03581185765823]
+            } 
+        }        
+    ]
+}
