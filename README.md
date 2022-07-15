@@ -1,8 +1,6 @@
 # Visual Storytelling - Kharkiv's Destroyed Infrastructure
 
-We are documenting the destruction of Kharkiv's city center – universities, museums, religious sites, residential apartment buildings, etc. Albeit digitally, we want to emulate the experience of walking through the city.
-
-![Sketch of Destroyed Building, DALL-E](./illustrations/destroyed-building.png)
+We are documenting the destruction of Kharkiv's civilian infrastructure – universities, museums, place of worship, residential apartment buildings, cemeteries, etc. Albeit digitally, our aim is to give readers the experience of walking through the city.
 
 
 ## Data
@@ -20,7 +18,7 @@ Our [damage assessment questionnaire](./data/damage-assessments/questionnaire.pd
 
 ### Before/After Pictures
 
-Pictures were taken on-site between July 12th, 2022 and July 13th, 2022. 
+Pictures were taken on-site between July 11th, 2022 and July 14th, 2022. 
 
 
 ### Testimonies
@@ -59,6 +57,6 @@ Satellite imagery of Kharkiv's city center is provided by [Planet](https://www.p
 
 ## Authors
 
-- [Jean-Romain Roy](https://jeanromainroy.com/)
+- [Jean-Romain Roy](https://jeanromainroy.com/), main author
 
-- [Emmanuel Roy](https://manuroy.ca/)
+- [Emmanuel Roy](https://manuroy.ca/), building infrastructure consultant
