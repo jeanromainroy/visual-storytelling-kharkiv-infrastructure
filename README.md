@@ -2,18 +2,50 @@
 
 We are documenting the destruction of Kharkiv's civilian infrastructure – universities, museums, place of worship, residential apartment buildings, cemeteries, etc. Albeit digitally, our aim is to give readers the experience of walking through the city.
 
+## Methodology
+
+### Landmarks
+
+1. Compile the location of shelling incidents using news articles, ongoing efforts (e.g. [UNESCO](https://www.unesco.org/en/articles/damaged-cultural-sites-ukraine-verified-unesco)), and [Live Universal Awareness Map](https://liveuamap.com/en/)
+ 
+2. Identify areas with high number of incidents
+
+3. Further narrow the area of study through on-site assessment (i.e. driving/walking around). 
+
+
+### Data Collection
+
+1. On-site: picture of the damage, testimonies, noting down any details of the surrounding area, building integrity assessment. 
+
+2. Off-site: CCTV-like videos of the shelling, reported testimonies, social media coverage, satellite imagery, image-based building integrity assessment. 
+
+3. Determine the features of each incident – location (latitude/longitude), date, time, infrastructure category, severity (nbr. injured/death). 
+
+
+### Building Integrity
+
+A damage assessment is completed for each incident. Our [survey](./data/damage-assessments/questionnaire.pdf) design is based on two publications by UN-Habitat, and was reviewed by a civil engineer. 
+ 
+ - [Beirut Municipality Rapid Building-Level Damage Assessment](https://unhabitat.org/beirut-port-explosions-response-beirut-municipality-rapid-building-level-damage-assessment) 
+
+ - [People’s Process in Post-disaster and Post-Conflict Recovery and Reconstruction](https://unhabitat.org/people%E2%80%99s-process-in-post-disaster-and-post-conflict-recovery-and-reconstruction)
+
+
+
+### War Crime Evaluation
+
+
+
+
 
 ## Data
 
 The research combines testimonies, on-site damage assessments, videos of the shelling incident, before/after pictures, and satellite imagery.
 
 
-### Building Damage Assessment 
+### Building Damage Severity
 
-Our [damage assessment questionnaire](./data/damage-assessments/questionnaire.pdf) is based on two publications by UN-Habitat and was reviewed by a civil engineer. 
- 
- - [Beirut Municipality Rapid Building-Level Damage Assessment](https://unhabitat.org/beirut-port-explosions-response-beirut-municipality-rapid-building-level-damage-assessment) 
- - [People’s Process in Post-disaster and Post-Conflict Recovery and Reconstruction](https://unhabitat.org/people%E2%80%99s-process-in-post-disaster-and-post-conflict-recovery-and-reconstruction)
+Based on the results of the assessment. 
 
 
 ### Before/After Pictures
@@ -39,8 +71,6 @@ Videos of the shelling incidents were sourced from news outlets, social media an
 
 The [landmarks](./landmarks.geojson) selected were from news reports and observers. 
 
- - [UNESCO](https://www.unesco.org/en/articles/damaged-cultural-sites-ukraine-verified-unesco)
- 
 ![Kharkiv's Destroyed Landmarks](./illustrations/incidents.png)
 
 
@@ -53,6 +83,7 @@ Satellite imagery of Kharkiv's city center is provided by [Planet](https://www.p
 | Source | [SkySat Collect](https://developers.planet.com/docs/data/skysatcollect/) |
 | Ground Sampling Distance | 0.7m |
 | Pixel Resolution | 0.5m |
+
 
 
 ## Authors
