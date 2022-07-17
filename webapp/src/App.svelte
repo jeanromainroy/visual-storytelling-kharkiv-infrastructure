@@ -4,15 +4,16 @@
     import { EARTH_RADIUS_PX } from './components/Map/config';
     import { vertex } from './components/Map/libs';
 
-    import * as THREE from 'three';
-
     // import components
+    import Loader from './components/Loader.svelte';
     import Map from './components/Map/Map.svelte';
 
     // map variables
-    let map_ready, first_run = true;
+    let map_ready;
+    let hide = true;
     let camera, renderer, scene;
     let markers, countries, earth;
+    let orient_north_up;
 
     // city of interest
     const START_RADIUS = EARTH_RADIUS_PX * 3;
@@ -21,9 +22,6 @@
     const AOE_LNG = 49.9935;
 
     // init
-    let oriented = false;
-    let last_last_y = 0;
-    let last_y = 0;
     let _radius = START_RADIUS;
 
 
@@ -49,7 +47,7 @@
     }
 
     
-    function move_above(camera, lat, lng) {
+    async function move_above(camera, lat, lng) {
 
         // convert to px
         const { x, y, z } = vertex([lat, lng], _radius);
@@ -62,129 +60,63 @@
         // rotate the camera to face origin
         camera.lookAt( 0, 0, 0 );
 
+        // orient north pole up
+        await orient_north_up();
     }
 
-    function get_position_of_north_pole(){
-
-        // get north pole marker
-        const { x, y, z } = markers.children[0].position;
-
-        // copy to vector
-        var vector = new THREE.Vector3();
-        vector.set( x, y, z );
-
-        // map to normalized device coordinate (NDC) space
-        vector.project( camera );
-
-        // map to 2D screen space
-        const north_pole_x = vector.x + 1;
-        const north_pole_y = - vector.y + 1;
-
-        return {
-            'x': north_pole_x,
-            'y': north_pole_y
-        };
+    // on map ready
+    $: if(map_ready){ 
+        init(); 
     }
-    
+
+    async function init() {
+
+        hide = true;
+        await move_above(camera, AOE_LAT, AOE_LNG);
+        hide = false;
+
+        animate();
+    }
 
     // animate map
-    function animate(){
-        requestAnimationFrame( animate );
+    async function animate(){
 
-        // ensure map is fully loaded
-        if (!map_ready) return;
+        // update radius
+        if (_radius > END_RADIUS) _radius = _radius * 0.99;
 
-        if (first_run) {
-            first_run = false;
-            move_above(camera, AOE_LAT, AOE_LNG)
-        }
+        // convert to px
+        const { x, y, z } = vertex([AOE_LAT, AOE_LNG], _radius);
 
-        // ------------------------------------------------------------------------------
-        // ------------------------------------------------------------------------------
-
-        // extract marker of north pole
-        const { x, y } = get_position_of_north_pole();
-
-        // check
-        if (last_last_y > last_y && last_y < y) { 
-            oriented = true;
-
-        } else {
-
-            // update
-            last_last_y = last_y;
-            last_y = y;
-            
-            if (!oriented) camera.rotation.z += 0.05;
-        }
-
-        // ------------------------------------------------------------------------------
-        // ------------------------------------------------------------------------------
-       
-        // rotate
-        if (oriented) {
-
-            // update radius
-            if (_radius > END_RADIUS) _radius = _radius * 0.99;
-
-            // convert to px
-            const { x, y, z } = vertex([AOE_LAT, AOE_LNG], _radius);
-
-            // position the camera right above
-            camera.position.x = x;
-            camera.position.y = y;
-            camera.position.z = z;
-        }
-
-        // ------------------------------------------------------------------------------
-        // ------------------------------------------------------------------------------
+        // position the camera right above
+        camera.position.x = x;
+        camera.position.y = y;
+        camera.position.z = z;
 
         // render
         renderer.render( scene, camera );
+
+        // animate
+        requestAnimationFrame( animate );
     }
-    animate();
-    
+
 
 </script>
 
 
-<main>
+{#if hide}
+    <Loader/>
+{/if}
 
-    <!-- Hide -->
-    {#if !oriented}
-        <div class="curtain"></div>
-    {/if}
-    
-    <!-- 3D Background -->
-    <Map
-        bind:ready={map_ready} 
-        bind:camera={camera} bind:scene={scene} bind:renderer={renderer} 
-        bind:object_countries={countries} bind:object_earth={earth} bind:object_markers={markers}
-    />
 
-</main>
+<!-- 3D Background -->
+<Map
+    bind:ready={map_ready} 
+    bind:camera={camera} bind:scene={scene} bind:renderer={renderer} 
+    bind:object_countries={countries} bind:object_earth={earth} bind:object_markers={markers}
+    bind:orient_north_up={orient_north_up}
+/>
 
 
 <style>
     
-    main {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-		padding: 0px;
-		text-align: center;
-	}
-
-    .curtain {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 99;
-        background-color: #eee;
-    }
-
 </style>

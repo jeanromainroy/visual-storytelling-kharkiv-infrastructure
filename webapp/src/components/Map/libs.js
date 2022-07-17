@@ -4,7 +4,88 @@
 import * as THREE from 'three';
 
 // import config
-import { EARTH_RADIUS_PX, MAT_MESH } from './config.js';
+import { EARTH_RADIUS_PX, MARKER_SIZE, MAT_MESH, MAT_LINE } from './config.js';
+
+
+
+export function get_object_screen_position(object, camera){
+
+    // get north pole marker
+    const { x, y, z } = object.position;
+
+    // copy to vector
+    var vector = new THREE.Vector3();
+    vector.set( x, y, z );
+
+    // map to normalized device coordinate (NDC) space
+    vector.project( camera );
+
+    // map to 2D screen space
+    const north_pole_x = vector.x + 1;
+    const north_pole_y = - vector.y + 1;
+
+    return {
+        'x': north_pole_x,
+        'y': north_pole_y
+    };
+}
+
+export function build_paths(paths) {
+
+    // init ensemble object
+    let object = new THREE.Object3D();
+
+    // go through paths
+    paths.forEach(line => {
+
+        // project each point
+        const points_projected = line.map(point => vertex(point));
+
+        // pair points
+        const points_projected_paired = pairs(points_projected)
+
+        // create object
+        const geometry = new THREE.BufferGeometry().setFromPoints( points_projected_paired );
+
+        // build material
+        const material = MAT_LINE();
+
+        // add
+        object.add(new THREE.LineSegments(geometry, material));
+    });
+
+    return object;
+}
+
+
+export function build_markers(features) {
+    
+    // init ensemble object
+    let object = new THREE.Object3D();
+    
+    // go through features
+    features.forEach(feature => {
+
+        // destructure
+        const { properties, geometry } = feature;
+
+        if ( geometry['type'] === 'MultiPoint' ) {
+            geometry['coordinates'].forEach(point => {
+                const [lng, lat] = point;
+                const object_marker = createMarkerFromLatLng(lat, lng, MARKER_SIZE);
+                object.add(object_marker);
+            })
+        } 
+                
+        if ( geometry['type'] === 'Point' ) {
+            const [lng, lat] = geometry['coordinates'];
+            const object_marker = createMarkerFromLatLng(lat, lng, MARKER_SIZE);
+            object.add(object_marker);
+        }
+    });
+
+    return object;
+}
 
 
 export function createMarkerFromXYZ(x, y, z, radius = 4) {

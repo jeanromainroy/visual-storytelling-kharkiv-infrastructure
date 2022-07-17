@@ -12,12 +12,14 @@
     import * as topojson from 'topojson-client';
 
     // import scripts
-    import { pairs, vertex, createMarkerFromXYZ, createMarkerFromLatLng } from "./libs.js";
+    import { createMarkerFromXYZ, createMarkerFromLatLng, 
+                build_paths, build_markers, 
+                get_object_screen_position } from "./libs.js";
 
     // import config
     import { fov, near, far, 
-              EARTH_RADIUS_PX, MARKER_SIZE,
-              MAT_POINT, MAT_LINE, MAT_MESH } from './config.js';
+              EARTH_RADIUS_PX,
+              MAT_MESH } from './config.js';
 
     // import world topology
     import topology from '../../assets/world-topography-50m.json';
@@ -25,10 +27,24 @@
     // import landmarks
     import landmarks from '../../assets/landmarks.json';
 
-    onMount(() => {
+    // prepare the world's GeoJSON MultiLineString in spherical coordinates
+    const countries = topojson.mesh(topology, topology['objects']['countries']);
 
-        // prepare the world's GeoJSON MultiLineString in spherical coordinates
-        const countries = topojson.mesh(topology, topology['objects']['countries']);
+    // build earth
+    const earth_geometry = new THREE.SphereGeometry( EARTH_RADIUS_PX - 0.5, 128, 128);
+    const earth_material = MAT_MESH(0xFFFFFF, 1.0, false);
+    object_earth = new THREE.Mesh( earth_geometry, earth_material );
+
+    // build paths
+    object_countries = build_paths(countries['coordinates'])
+
+    // build markers
+    object_markers = build_markers(landmarks['features']);
+
+    // build north pole
+    const object_north_pole = createMarkerFromLatLng(90.0, 0.0, 0);
+
+    onMount(() => {
 
         // grab canvas
         const canvas = document.querySelector('#bg');
@@ -36,66 +52,19 @@
         // init elements
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera( fov, window.innerWidth / window.innerHeight, near, far );
-        renderer = new THREE.WebGLRenderer({
-            alpha: true,
-            canvas: canvas
-        });
+        renderer = new THREE.WebGLRenderer({ alpha: true, canvas: canvas });
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2()
 
         // set renderer attributes
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( window.innerWidth, window.innerHeight );
 
-        // create earth
-        const geometry = new THREE.SphereGeometry( EARTH_RADIUS_PX - 0.5, 128, 128);
-        object_earth = new THREE.Mesh( geometry, MAT_MESH(0xFFFFFF, 1.0, false) );
-
-        // create countries
-        object_countries = new THREE.Object3D();
-        countries['coordinates'].forEach(line => {
-
-            // project each point
-            const points_projected = line.map(point => vertex(point));
-
-            // pair points
-            const points_projected_paired = pairs(points_projected)
-
-            // create object
-            const geometry = new THREE.BufferGeometry().setFromPoints( points_projected_paired );
-
-            // add
-            object_countries.add(new THREE.LineSegments(geometry, MAT_LINE()));
-        })
-
-
-        // create markers
-        object_markers = new THREE.Object3D();
-        object_markers.add(createMarkerFromLatLng(90.0, 0.0, 0)); // north pole
-        landmarks['features'].forEach(feature => {
-
-            // destructure
-            const { properties, geometry } = feature;
-
-            if ( geometry['type'] === 'MultiPoint' ) {
-                geometry['coordinates'].forEach(point => {
-                    const [lng, lat] = point;
-                    const object_marker = createMarkerFromLatLng(lat, lng, MARKER_SIZE);
-                    object_markers.add(object_marker);
-                })
-            } else if ( geometry['type'] === 'Point' ) {
-                const [lng, lat] = geometry['coordinates'];
-                const object_marker = createMarkerFromLatLng(lat, lng, MARKER_SIZE);
-                object_markers.add(object_marker);
-            }
-        });
-
-        // add to scene
+        // add to scene (do not change order)
         scene.add(object_earth);
         scene.add(object_countries);
         scene.add(object_markers);
-
-        // Use of the Raycaster inspired by  webgl_interactive_cubes.html, in the THREE.js project examples directory
-        let raycaster = new THREE.Raycaster();
-        let mouse = new THREE.Vector2()
+        scene.add(object_north_pole);
 
         // set onclick listener
         canvas.addEventListener('click', event => {
@@ -113,23 +82,20 @@
             raycaster.setFromCamera(mouse, camera);
 
             // check intersect with earth (i.e. first children, because added first)
-            scene.children[0].updateMatrixWorld()
             const intersects = raycaster.intersectObjects([scene.children[0]]);
 
             // add markers
-            if (intersects.length > 0) {
-                intersects.forEach(intersect => {
+            intersects.forEach(intersect => {
                     
-                    // destructure
-                    const { x, y, z } = intersect.point;
-                    
-                    // create marker at intersection point
-                    const object_marker = createMarkerFromXYZ(x, y, z);
+                // destructure
+                const { x, y, z } = intersect.point;
+                
+                // create marker at intersection point
+                const object_marker = createMarkerFromXYZ(x, y, z);
 
-                    // add to ensemble object
-                    object_markers.add(object_marker);
-                })
-            }
+                // add to ensemble object
+                object_markers.add(object_marker);
+            })
 
             // render
             renderer.render( scene, camera );
@@ -143,6 +109,43 @@
     })
 
 
+    export const orient_north_up = async () => {
+
+        // init process variables
+        let last_last_y = 0;
+        let last_y = 0;
+
+        await new Promise(resolve => {
+
+            function brute_force(){
+                
+                // extract marker of north pole
+                const { x, y } = get_object_screen_position(object_north_pole, camera);
+
+                // check
+                if (last_last_y > last_y && last_y < y) {
+                    resolve();
+                    return;
+                }
+                
+                // update
+                last_last_y = last_y;
+                last_y = y;
+                
+                // rotate camera
+                camera.rotation.z += 0.05;
+
+                // render
+                renderer.render( scene, camera );
+
+                // animate
+                requestAnimationFrame( brute_force );
+            }
+
+            brute_force();
+        })        
+    }
+
 </script>
 
 <canvas id="bg" class="fade-in-long"></canvas>
@@ -153,8 +156,12 @@
         position: absolute;
         top: 0px;
         left: 0px;
+        right: 0px;
+        bottom: 0px;
         width: 100%;
+        height: 100%;
         background-color: #eee;
+        z-index: 1;
     }
 
 </style>
