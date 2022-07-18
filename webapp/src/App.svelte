@@ -8,61 +8,21 @@
     import Loader from './components/Loader.svelte';
     import Map from './components/Map/Map.svelte';
 
+    // import config
+    import { START_RADIUS, MAX_DISTANCE, MIN_DISTANCE, CENTER_LAT, CENTER_LNG, END_RADIUS } from './config.js';
+
     // map variables
     let map_ready;
-    let hide = true;
-    let camera, renderer, scene;
+    let camera, renderer, scene, controls;
     let markers, countries, earth;
-    let orient_north_up;
+    let orient_north_up, move_to_LatLng;
 
-    // city of interest
-    const START_RADIUS = EARTH_RADIUS_PX * 3;
-    const END_RADIUS = EARTH_RADIUS_PX * 1.02;
-    const AOE_LAT = 36.2304;
-    const AOE_LNG = 49.9935;
-
-    // init
+    // app variables
+    let hide = true;
+    let rotation_for_north_up = 0.0;
+    let zoom_completed = false;
     let _radius = START_RADIUS;
 
-
-    function orbit_angle(point, radius, angle_increase = 0.01) {
-
-        // destructure
-        const [adjacent, opposite] = point;
-
-        // get current angle
-        const current_angle = Math.atan2(opposite, adjacent);
-
-        // increment angle
-        let next_angle = current_angle + angle_increase;
-
-        // reset
-        if (next_angle > 2 * Math.PI) next_angle = 0.0;
-
-        // convert back to position
-        const _opposite = Math.sin(next_angle) * radius;
-        const _adjacent = Math.cos(next_angle) * radius;
-
-        return [_adjacent, _opposite]
-    }
-
-    
-    async function move_above(camera, lat, lng) {
-
-        // convert to px
-        const { x, y, z } = vertex([lat, lng], _radius);
-
-        // position the camera right above
-        camera.position.x = x;
-        camera.position.y = y;
-        camera.position.z = z;
-
-        // rotate the camera to face origin
-        camera.lookAt( 0, 0, 0 );
-
-        // orient north pole up
-        await orient_north_up();
-    }
 
     // on map ready
     $: if(map_ready){ 
@@ -71,32 +31,88 @@
 
     async function init() {
 
+        // disable controls
+        controls.enabled = false;
+
+        // set hide flag
         hide = true;
-        await move_above(camera, AOE_LAT, AOE_LNG);
+
+        // move to lat/lng
+        const [x, y, z] = move_to_LatLng(CENTER_LAT, CENTER_LNG, _radius);
+
+        // rotate
+        rotation_for_north_up = await orient_north_up();
+
+        // set hide flag
         hide = false;
 
+        // // set controls attributes
+        controls.enableDamping = true;
+        controls.maxDistance = MAX_DISTANCE;
+        controls.minDistance = MIN_DISTANCE;
+
+        // normalize coordinates
+        const x_norm = (x / window.innerWidth) * 2 - 1;
+        const y_norm = (y / window.innerHeight) * 2 - 1;
+
+        // set target on center
+        controls.target.set(x_norm, y_norm, 0);
+
+        // zoom animation
+        await _zoom();
+    
+        // enable controls
+        controls.enabled = true;
+
+        // user control animation
         animate();
     }
 
+
+    async function _zoom(){
+        await new Promise(resolve => {
+            function zoom() {
+
+                // decrease radius
+                _radius = _radius * 0.99;
+
+                // stop 
+                if ( _radius < END_RADIUS ) {
+                    resolve();
+                    return;
+                }
+
+                // zoom
+                move_to_LatLng(CENTER_LAT, CENTER_LNG, _radius);
+
+                // animate
+                requestAnimationFrame( zoom );
+            }
+            zoom();
+        })
+    }
+    
+
+
     // animate map
-    async function animate(){
+    function animate(){
+        requestAnimationFrame( animate );
 
-        // update radius
-        if (_radius > END_RADIUS) _radius = _radius * 0.99;
+        // adjust controls depending on zoom level
+        const distance_ratio = (controls.getDistance() - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE)
+        controls.rotateSpeed = 0.5 * (2 * distance_ratio);
+        controls.panSpeed = 0.5 * (2 * distance_ratio);
+        controls.zoomSpeed = 1.0 * (2 * distance_ratio);
 
-        // convert to px
-        const { x, y, z } = vertex([AOE_LAT, AOE_LNG], _radius);
+        // update control
+        controls.update();
 
-        // position the camera right above
-        camera.position.x = x;
-        camera.position.y = y;
-        camera.position.z = z;
-
+        // TODO
+        // camera.rotation.z += rotation_for_north_up;
+        
         // render
         renderer.render( scene, camera );
 
-        // animate
-        requestAnimationFrame( animate );
     }
 
 
@@ -111,9 +127,9 @@
 <!-- 3D Background -->
 <Map
     bind:ready={map_ready} 
-    bind:camera={camera} bind:scene={scene} bind:renderer={renderer} 
+    bind:camera={camera} bind:scene={scene} bind:renderer={renderer} bind:controls={controls}
     bind:object_countries={countries} bind:object_earth={earth} bind:object_markers={markers}
-    bind:orient_north_up={orient_north_up}
+    bind:orient_north_up={orient_north_up} bind:move_to_LatLng={move_to_LatLng}
 />
 
 

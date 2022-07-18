@@ -1,8 +1,8 @@
 <script>
 
     // properties
-    export let camera, renderer, scene;
-    export let object_markers, object_countries, object_earth;
+    export let camera, renderer, scene, raycaster, mouse, controls;
+    export let object_markers, object_countries, object_earth, object_streets;
     export let ready = false;
 
     // import libs
@@ -10,41 +10,69 @@
     import * as THREE from 'three';
     import * as d3 from 'd3';
     import * as topojson from 'topojson-client';
+    import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
     // import scripts
-    import { createMarkerFromXYZ, createMarkerFromLatLng, 
-                build_paths, build_markers, 
-                get_object_screen_position } from "./libs.js";
+    import { build_earth, build_paths, build_markers, build_lines, build_north_pole,
+            get_object_screen_position, vertex } from "./libs.js";
 
     // import config
-    import { fov, near, far, 
-              EARTH_RADIUS_PX,
-              MAT_MESH } from './config.js';
+    import { fov, near, far } from './config.js';
 
-    // import world topology
-    import topology from '../../assets/world-topography-50m.json';
-
-    // import landmarks
+    // import geojsons
+    import topology from '../../assets/world-topography-110m.json';
+    import streets from '../../assets/streets.json';
     import landmarks from '../../assets/landmarks.json';
 
     // prepare the world's GeoJSON MultiLineString in spherical coordinates
     const countries = topojson.mesh(topology, topology['objects']['countries']);
 
     // build earth
-    const earth_geometry = new THREE.SphereGeometry( EARTH_RADIUS_PX - 0.5, 128, 128);
-    const earth_material = MAT_MESH(0xFFFFFF, 1.0, false);
-    object_earth = new THREE.Mesh( earth_geometry, earth_material );
-
-    // build paths
-    object_countries = build_paths(countries['coordinates'])
-
-    // build markers
+    object_earth = build_earth();
+    object_countries = build_paths(countries['coordinates']);
+    object_streets = build_lines(streets['features'])
     object_markers = build_markers(landmarks['features']);
+    const object_north_pole = build_north_pole();
 
-    // build north pole
-    const object_north_pole = createMarkerFromLatLng(90.0, 0.0, 0);
+    // variables
+    let marker_highlighted = false;
 
-    onMount(() => {
+
+    // helper functions
+    function reset_color_of_markers(){
+
+        // check if we have highlighted markers
+        if (!marker_highlighted) return;
+
+        // reset color
+        object_markers.children.forEach(obj => obj.material.color.setHex( 0xff0000 ));
+
+        // set flag
+        marker_highlighted = false;
+    }
+
+
+    function get_markers_from_mouse_event(event) {
+
+        // destructure event
+        const { clientX, clientY } = event;
+
+        // set mouse x,y attributes
+        mouse.x = (clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+
+        // update
+        camera.updateMatrixWorld();
+        raycaster.setFromCamera(mouse, camera);
+
+        // check intersect with earth (i.e. first children, because added first)
+        const intersects = raycaster.intersectObjects([scene.children[3]]);
+
+        return intersects;
+    }
+
+
+    onMount(async () => {
 
         // grab canvas
         const canvas = document.querySelector('#bg');
@@ -53,8 +81,9 @@
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera( fov, window.innerWidth / window.innerHeight, near, far );
         renderer = new THREE.WebGLRenderer({ alpha: true, canvas: canvas });
-        let raycaster = new THREE.Raycaster();
-        let mouse = new THREE.Vector2()
+        raycaster = new THREE.Raycaster();
+        mouse = new THREE.Vector2()
+        controls = new OrbitControls( camera, renderer.domElement );
 
         // set renderer attributes
         renderer.setPixelRatio( window.devicePixelRatio );
@@ -63,43 +92,52 @@
         // add to scene (do not change order)
         scene.add(object_earth);
         scene.add(object_countries);
+        scene.add(object_streets);
         scene.add(object_markers);
         scene.add(object_north_pole);
 
         // set onclick listener
-        canvas.addEventListener('click', event => {
+        canvas.addEventListener('mousemove', event => {
             event.preventDefault();
 
-            // destructure event
-            const { clientX, clientY } = event;
+            // get intersected markers
+            const intersects = get_markers_from_mouse_event(event);
 
-            // set mouse x,y attributes
-            mouse.x = (clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+            // reset colors
+            reset_color_of_markers();
 
-            // update
-            camera.updateMatrixWorld();
-            raycaster.setFromCamera(mouse, camera);
+            // check
+            if (intersects.length === 0) return;
 
-            // check intersect with earth (i.e. first children, because added first)
-            const intersects = raycaster.intersectObjects([scene.children[0]]);
+            // set color
+            intersects.forEach(intersect => intersect.object.material.color.setHex( 0x00ff00 ))
 
-            // add markers
-            intersects.forEach(intersect => {
-                    
-                // destructure
-                const { x, y, z } = intersect.point;
-                
-                // create marker at intersection point
-                const object_marker = createMarkerFromXYZ(x, y, z);
-
-                // add to ensemble object
-                object_markers.add(object_marker);
-            })
+            // set flag
+            marker_highlighted = true;
 
             // render
             renderer.render( scene, camera );
         })
+
+
+        canvas.addEventListener('click', event => {
+            event.preventDefault();
+
+            // get intersected markers
+            const intersects = get_markers_from_mouse_event(event);
+
+            // check
+            if (intersects.length === 0) return;
+
+            // set color
+            intersects.forEach(intersect => {
+                console.log(intersect['object']['properties'])
+            })
+        })
+
+
+        // update control
+        controls.update();
 
         // render
         renderer.render( scene, camera );
@@ -109,11 +147,39 @@
     })
 
 
+
+    export const move_to_LatLng = (lat, lng, radius) => {
+
+        // convert to px
+        const { x, y, z } = vertex([lat, lng], radius);
+
+        // position the camera right above
+        camera.position.x = x;
+        camera.position.y = y;
+        camera.position.z = z;
+
+        // update control
+        controls.update();
+
+        // render
+        renderer.render( scene, camera );
+
+        return [x, y, z];
+    }
+
+
     export const orient_north_up = async () => {
 
         // init process variables
         let last_last_y = 0;
         let last_y = 0;
+
+        // rotate the camera to face origin
+        camera.lookAt( 0, 0, 0 );
+
+        // initial camera rotation
+        const initial_rotation = camera.rotation.z;
+
 
         await new Promise(resolve => {
 
@@ -133,8 +199,8 @@
                 last_y = y;
                 
                 // rotate camera
-                camera.rotation.z += 0.05;
-
+                camera.rotation.z += 0.02;
+                    
                 // render
                 renderer.render( scene, camera );
 
@@ -143,7 +209,9 @@
             }
 
             brute_force();
-        })        
+        })
+
+        return camera.rotation.z - initial_rotation;
     }
 
 </script>

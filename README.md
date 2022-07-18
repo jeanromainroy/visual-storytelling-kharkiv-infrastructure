@@ -43,6 +43,10 @@ A damage assessment is completed for each incident. Our [survey](./data/damage-a
 The research combines testimonies, on-site damage assessments, videos of the shelling incident, before/after pictures, and satellite imagery.
 
 
+### Streets Geojson
+
+OpenStreetMap data of kharkiv was downloaded using [BBBike](https://extract.bbbike.org/).
+
 ### Building Damage Severity
 
 Based on the results of the assessment. 

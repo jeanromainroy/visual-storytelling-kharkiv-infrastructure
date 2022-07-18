@@ -30,6 +30,20 @@ export function get_object_screen_position(object, camera){
     };
 }
 
+
+export function build_earth(){
+    const earth_geometry = new THREE.SphereGeometry( EARTH_RADIUS_PX - 0.5, 128, 128);
+    const earth_material = MAT_MESH(0xFFFFFF, 1.0, false);
+    const object_earth = new THREE.Mesh( earth_geometry, earth_material );
+    return object_earth;
+}
+
+
+export function build_north_pole(){
+    return createMarkerFromLatLng(90.0, 0.0, 0);
+}
+
+
 export function build_paths(paths) {
 
     // init ensemble object
@@ -40,6 +54,37 @@ export function build_paths(paths) {
 
         // project each point
         const points_projected = line.map(point => vertex(point));
+
+        // pair points
+        const points_projected_paired = pairs(points_projected)
+
+        // create object
+        const geometry = new THREE.BufferGeometry().setFromPoints( points_projected_paired );
+
+        // build material
+        const material = MAT_LINE();
+
+        // add
+        object.add(new THREE.LineSegments(geometry, material));
+    });
+
+    return object;
+}
+
+
+export function build_lines(features) {
+
+    // init ensemble object
+    let object = new THREE.Object3D();
+    
+    // go through features
+    features.forEach(feature => {
+
+        // destructure
+        const coordinates = feature['geometry']['coordinates'];
+
+        // project each point
+        const points_projected = coordinates.map(point => vertex(point));
 
         // pair points
         const points_projected_paired = pairs(points_projected)
@@ -73,6 +118,7 @@ export function build_markers(features) {
             geometry['coordinates'].forEach(point => {
                 const [lng, lat] = point;
                 const object_marker = createMarkerFromLatLng(lat, lng, MARKER_SIZE);
+                object_marker['properties'] = properties;
                 object.add(object_marker);
             })
         } 
@@ -80,6 +126,7 @@ export function build_markers(features) {
         if ( geometry['type'] === 'Point' ) {
             const [lng, lat] = geometry['coordinates'];
             const object_marker = createMarkerFromLatLng(lat, lng, MARKER_SIZE);
+            object_marker['properties'] = properties;
             object.add(object_marker);
         }
     });
@@ -159,4 +206,25 @@ export function _pairs(values, pairof = pair) {
 
 export function pair(a, b) {
     return [a, b];
+}
+
+function orbit_angle(point, radius, angle_increase = 0.01) {
+
+    // destructure
+    const [adjacent, opposite] = point;
+
+    // get current angle
+    const current_angle = Math.atan2(opposite, adjacent);
+
+    // increment angle
+    let next_angle = current_angle + angle_increase;
+
+    // reset
+    if (next_angle > 2 * Math.PI) next_angle = 0.0;
+
+    // convert back to position
+    const _opposite = Math.sin(next_angle) * radius;
+    const _adjacent = Math.cos(next_angle) * radius;
+
+    return [_adjacent, _opposite]
 }

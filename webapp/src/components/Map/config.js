@@ -17,7 +17,7 @@ export const far = 1000;
 
 // --- Objects Properties ---
 export const EARTH_RADIUS_PX = 228;
-export const MARKER_SIZE = 0.005;
+export const MARKER_SIZE = 0.001;
 
 
 // --- Materials ---
