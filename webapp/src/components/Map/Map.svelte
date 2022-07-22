@@ -22,8 +22,8 @@
 
     // import geojsons
     import topology from '../../assets/world-topography-110m.json';
-    import streets from '../../assets/highways.json';
-    import landmarks from '../../assets/landmarks.json';
+    import incidents from '../../../../data/incidents.json';
+    // import streets from '../../assets/highways.json';
 
     // prepare the world's GeoJSON MultiLineString in spherical coordinates
     const countries = topojson.mesh(topology, topology['objects']['countries']);
@@ -31,8 +31,8 @@
     // build earth
     object_earth = build_earth();
     object_countries = build_paths(countries['coordinates']);
-    object_streets = build_lines(streets['features'])
-    object_markers = build_markers(landmarks['features']);
+    object_markers = build_markers(incidents['features']);
+    // object_streets = build_lines(streets['features'])
     const object_north_pole = build_north_pole();
 
     // variables
@@ -93,9 +93,9 @@
         // add to scene (do not change order)
         scene.add(object_earth);
         scene.add(object_countries);
-        scene.add(object_streets);
         scene.add(object_markers);
         scene.add(object_north_pole);
+        // scene.add(object_streets);
 
         // set onclick listener
         canvas.addEventListener('mousemove', event => {
