@@ -81,22 +81,49 @@ export function build_lines(features) {
     features.forEach(feature => {
 
         // destructure
-        const coordinates = feature['geometry']['coordinates'];
-
-        // project each point
-        const points_projected = coordinates.map(point => vertex(point));
-
-        // pair points
-        const points_projected_paired = pairs(points_projected)
-
-        // create object
-        const geometry = new THREE.BufferGeometry().setFromPoints( points_projected_paired );
+        const type = feature['geometry']['type'];
 
         // build material
         const material = MAT_LINE();
 
-        // add
-        object.add(new THREE.LineSegments(geometry, material));
+        if ( type === 'LineString' ) {
+
+            // extract coordinates
+            const line = feature['geometry']['coordinates'];
+
+            // project each point
+            const points_projected = line.map(point => vertex(point));
+
+            // pair points
+            const points_projected_paired = pairs(points_projected)
+
+            // create object
+            const geometry = new THREE.BufferGeometry().setFromPoints( points_projected_paired );
+
+            // add
+            object.add(new THREE.LineSegments(geometry, material));
+        } 
+
+        if ( type === 'MultiLineString' ) {
+
+            // extract coordinates
+            const lines = feature['geometry']['coordinates'];
+
+            lines.forEach(line => {
+
+                // project each point
+                const points_projected = line.map(point => vertex(point));
+
+                // pair points
+                const points_projected_paired = pairs(points_projected)
+
+                // create object
+                const geometry = new THREE.BufferGeometry().setFromPoints( points_projected_paired );
+
+                // add
+                object.add(new THREE.LineSegments(geometry, material));
+            });        
+        }
     });
 
     return object;

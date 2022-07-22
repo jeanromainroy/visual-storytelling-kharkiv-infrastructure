@@ -8,7 +8,7 @@ export const START_RADIUS = EARTH_RADIUS_PX * 3;
 export const END_RADIUS = EARTH_RADIUS_PX * 1.002;
 
 export const MAX_DISTANCE = START_RADIUS;
-export const MIN_DISTANCE = EARTH_RADIUS_PX * 1.0015;
+export const MIN_DISTANCE = EARTH_RADIUS_PX * 1.0018;
 
 export const CENTER_LAT = 36.2304;
 export const CENTER_LNG = 49.9935;

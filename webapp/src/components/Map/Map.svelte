@@ -1,6 +1,7 @@
 <script>
 
     // properties
+    export let canvas;
     export let camera, renderer, scene, raycaster, mouse, controls;
     export let object_markers, object_countries, object_earth, object_streets;
     export let ready = false;
@@ -21,7 +22,7 @@
 
     // import geojsons
     import topology from '../../assets/world-topography-110m.json';
-    import streets from '../../assets/streets.json';
+    import streets from '../../assets/highways.json';
     import landmarks from '../../assets/landmarks.json';
 
     // prepare the world's GeoJSON MultiLineString in spherical coordinates
@@ -75,7 +76,7 @@
     onMount(async () => {
 
         // grab canvas
-        const canvas = document.querySelector('#bg');
+        canvas = document.querySelector('#bg');
 
         // init elements
         scene = new THREE.Scene();
@@ -146,6 +147,44 @@
         ready = true;
     })
 
+
+    export const load_image = (url, center_lat, center_lng, width, height) => {
+
+        // load image as texture
+        const texture = new THREE.TextureLoader().load( url );
+
+        // get texture image info
+        // const { height, width } = texture.image;
+
+        // immediately use the texture for material creation
+        const material = new THREE.MeshBasicMaterial( { map: texture, side: THREE.DoubleSide } );
+
+        // create plane
+        const geometry = new THREE.PlaneGeometry( width, height );
+        const plane = new THREE.Mesh( geometry, material );
+
+        // project lat/lng
+        const vector = vertex([center_lng, center_lat]);
+
+        // destructure
+        const { x, y, z } = vector;
+
+        // set position
+        plane.position.set(x, y, z);
+
+        // rotate
+        plane.lookAt( 0, 0, 0 );
+
+        // add to scene
+        scene.add( plane );
+
+        // update control
+        controls.update();
+
+        // render
+        renderer.render( scene, camera );
+
+    }
 
 
     export const move_to_LatLng = (lat, lng, radius) => {

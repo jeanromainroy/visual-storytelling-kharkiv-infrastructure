@@ -1,9 +1,5 @@
 <script>
 
-    // import 
-    import { EARTH_RADIUS_PX } from './components/Map/config';
-    import { vertex } from './components/Map/libs';
-
     // import components
     import Loader from './components/Loader.svelte';
     import Map from './components/Map/Map.svelte';
@@ -15,7 +11,7 @@
     let map_ready;
     let camera, renderer, scene, controls;
     let markers, countries, earth;
-    let orient_north_up, move_to_LatLng;
+    let orient_north_up, move_to_LatLng, load_image;
 
     // app variables
     let hide = true;
@@ -27,6 +23,22 @@
     // on map ready
     $: if(map_ready){ 
         init(); 
+    }
+
+    function load_images(){
+
+        const images = [
+            { 'url': '1.jpg', 'lat': 50.0177357160156, 'lng': 36.245435228443036, 'width': 2, 'height': 2 }
+        ];
+
+        images.forEach(image => {
+
+            // destructure
+            const { url, lat, lng, width, height } = image;
+
+            // load
+            load_image(url, lat, lng, width, height);
+        })
     }
 
     async function init() {
@@ -57,6 +69,12 @@
 
         // set target on center
         controls.target.set(x_norm, y_norm, 0);
+
+
+        // load images
+        load_images();
+
+
 
         // zoom animation
         await _zoom();
@@ -104,6 +122,7 @@
         controls.panSpeed = 0.5 * (2 * distance_ratio);
         controls.zoomSpeed = 1.0 * (2 * distance_ratio);
 
+
         // update control
         controls.update();
 
@@ -129,7 +148,7 @@
     bind:ready={map_ready} 
     bind:camera={camera} bind:scene={scene} bind:renderer={renderer} bind:controls={controls}
     bind:object_countries={countries} bind:object_earth={earth} bind:object_markers={markers}
-    bind:orient_north_up={orient_north_up} bind:move_to_LatLng={move_to_LatLng}
+    bind:orient_north_up={orient_north_up} bind:move_to_LatLng={move_to_LatLng} bind:load_image={load_image}
 />
 
 

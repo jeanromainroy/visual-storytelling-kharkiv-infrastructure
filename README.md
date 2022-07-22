@@ -43,6 +43,25 @@ A damage assessment is completed for each incident. Our [survey](./data/damage-a
 The research combines testimonies, on-site damage assessments, videos of the shelling incident, before/after pictures, and satellite imagery.
 
 
+### Public Images
+
+We can use the regular image search, reverse image search (e.g. Google Lens), street view, geotagged images, 360deg images of Google and Yandex:
+
+ - [Google](https://maps.google.com/)
+
+ - [Yandex](https://yandex.ru/)
+
+
+
+### Videos from Telegram
+
+1. Locate the t.me url 
+
+2. If only 1 video use [steptodown.com](https://steptodown.com/telegram-video-downloader/)
+
+3. If multiple videos you need to screen capture
+
+
 ### Streets Geojson
 
 OpenStreetMap data of kharkiv was downloaded using [BBBike](https://extract.bbbike.org/).
