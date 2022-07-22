@@ -4,6 +4,10 @@
 import * as THREE from 'three';
 
 
+// --- DEBUG ---
+export const DEBUG = true;
+
+
 // --- Camera ---
 // fov — Camera frustum vertical field of view.
 export const fov = 50;

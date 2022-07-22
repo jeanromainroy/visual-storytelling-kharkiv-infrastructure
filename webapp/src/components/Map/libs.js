@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 
 // import config
-import { EARTH_RADIUS_PX, MARKER_SIZE, MAT_MESH, MAT_LINE } from './config.js';
+import { EARTH_RADIUS_PX, MARKER_SIZE, MAT_MESH, MAT_LINE, DEBUG } from './config.js';
 
 
 
@@ -21,26 +21,21 @@ export function get_object_screen_position(object, camera){
     vector.project( camera );
 
     // map to 2D screen space
-    const north_pole_x = vector.x + 1;
-    const north_pole_y = - vector.y + 1;
+    const _x = vector.x + 1;
+    const _y = - vector.y + 1;
 
     return {
-        'x': north_pole_x,
-        'y': north_pole_y
+        'x': _x,
+        'y': _y
     };
 }
 
 
 export function build_earth(){
     const earth_geometry = new THREE.SphereGeometry( EARTH_RADIUS_PX - 0.5, 128, 128);
-    const earth_material = MAT_MESH(0xFFFFFF, 1.0, false);
+    const earth_material = DEBUG ? MAT_MESH(0xFFFFFF, 0.0, false) : MAT_MESH(0xFFFFFF, 1.0, false);
     const object_earth = new THREE.Mesh( earth_geometry, earth_material );
     return object_earth;
-}
-
-
-export function build_north_pole(){
-    return createMarkerFromLatLng(90.0, 0.0, 0);
 }
 
 
@@ -254,4 +249,53 @@ function orbit_angle(point, radius, angle_increase = 0.01) {
     const _adjacent = Math.cos(next_angle) * radius;
 
     return [_adjacent, _opposite]
+}
+
+
+export const orient_north_up = async (camera, renderer, scene, object_north_pole) => {
+
+    // init process variables
+    let last_last_y = 0;
+    let last_y = 0;
+
+    // rotate the camera to face origin
+    camera.lookAt( 0, 0, 0 );
+
+    // initial camera rotation
+    const initial_rotation = camera.rotation.z;
+
+    await new Promise(resolve => {
+
+        function brute_force(){
+            
+            // extract marker of north pole
+            const { x, y } = get_object_screen_position(object_north_pole, camera);
+
+            // check
+            if (last_last_y > last_y && last_y < y) {
+                resolve();
+                return;
+            }
+            
+            // update
+            last_last_y = last_y;
+            last_y = y;
+            
+            // rotate camera
+            camera.rotation.z += 0.02;
+                
+            // render
+            renderer.render( scene, camera );
+
+            // animate
+            requestAnimationFrame( brute_force );
+        }
+
+        brute_force();
+    })
+                
+    // render
+    renderer.render( scene, camera );
+
+    return camera.rotation.z - initial_rotation;
 }

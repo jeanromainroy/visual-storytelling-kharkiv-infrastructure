@@ -28,7 +28,7 @@
     function load_images(){
 
         const images = [
-            { 'url': '1.jpg', 'lat': 50.0177357160156, 'lng': 36.245435228443036, 'width': 2, 'height': 2 }
+            { 'url': '1.jpg', 'lat': 50.0177357160156, 'lng': 36.245435228443036, 'width': 0.05, 'height': 0.05 }
         ];
 
         images.forEach(image => {
@@ -50,31 +50,25 @@
         hide = true;
 
         // move to lat/lng
-        const [x, y, z] = move_to_LatLng(CENTER_LAT, CENTER_LNG, _radius);
+        // const [x, y, z] = move_to_LatLng(CENTER_LAT, CENTER_LNG, _radius);
 
-        // rotate
-        rotation_for_north_up = await orient_north_up();
+        // // normalize coordinates
+        // const x_norm = (x / window.innerWidth) * 2 - 1;
+        // const y_norm = (y / window.innerHeight) * 2 - 1;
+
+        // // set target on center
+        // controls.target.set(x_norm, y_norm, 1.0);
 
         // set hide flag
         hide = false;
 
-        // // set controls attributes
+        // set controls attributes
         controls.enableDamping = true;
         controls.maxDistance = MAX_DISTANCE;
         controls.minDistance = MIN_DISTANCE;
 
-        // normalize coordinates
-        const x_norm = (x / window.innerWidth) * 2 - 1;
-        const y_norm = (y / window.innerHeight) * 2 - 1;
-
-        // set target on center
-        controls.target.set(x_norm, y_norm, 0);
-
-
         // load images
         load_images();
-
-
 
         // zoom animation
         await _zoom();
@@ -102,7 +96,7 @@
 
                 // zoom
                 move_to_LatLng(CENTER_LAT, CENTER_LNG, _radius);
-
+                
                 // animate
                 requestAnimationFrame( zoom );
             }
@@ -119,16 +113,12 @@
         // adjust controls depending on zoom level
         const distance_ratio = (controls.getDistance() - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE)
         controls.rotateSpeed = 0.5 * (2 * distance_ratio);
-        controls.panSpeed = 0.5 * (2 * distance_ratio);
-        controls.zoomSpeed = 1.0 * (2 * distance_ratio);
-
+        controls.panSpeed = 4.0 * distance_ratio;
+        controls.zoomSpeed = 4.0 * distance_ratio;
 
         // update control
         controls.update();
 
-        // TODO
-        // camera.rotation.z += rotation_for_north_up;
-        
         // render
         renderer.render( scene, camera );
 

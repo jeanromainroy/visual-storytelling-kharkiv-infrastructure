@@ -14,26 +14,28 @@
     import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
     // import scripts
-    import { build_earth, build_paths, build_markers, build_lines, build_north_pole,
-            get_object_screen_position, vertex } from "./libs.js";
+    import { build_earth, build_paths, build_markers, build_lines, vertex } from "./libs.js";
 
     // import config
-    import { fov, near, far } from './config.js';
+    import { fov, near, far, DEBUG } from './config.js';
 
     // import geojsons
-    import topology from '../../assets/world-topography-110m.json';
+    import topology from './assets/world-topography-110m.json';
     import incidents from '../../../../data/incidents.json';
     // import streets from '../../assets/highways.json';
 
     // prepare the world's GeoJSON MultiLineString in spherical coordinates
     const countries = topojson.mesh(topology, topology['objects']['countries']);
 
+    // set config
+    THREE.Object3D.DefaultUp.set(0.0, 0.0, 1.0);
+
     // build earth
     object_earth = build_earth();
     object_countries = build_paths(countries['coordinates']);
     object_markers = build_markers(incidents['features']);
+
     // object_streets = build_lines(streets['features'])
-    const object_north_pole = build_north_pole();
 
     // variables
     let marker_highlighted = false;
@@ -66,8 +68,8 @@
         camera.updateMatrixWorld();
         raycaster.setFromCamera(mouse, camera);
 
-        // check intersect with earth (i.e. first children, because added first)
-        const intersects = raycaster.intersectObjects([scene.children[3]]);
+        // check if the mouse intersects with markers (i.e. first children, because added first)
+        const intersects = raycaster.intersectObjects([scene.children[0]]);
 
         return intersects;
     }
@@ -84,18 +86,31 @@
         renderer = new THREE.WebGLRenderer({ alpha: true, canvas: canvas });
         raycaster = new THREE.Raycaster();
         mouse = new THREE.Vector2()
-        controls = new OrbitControls( camera, renderer.domElement );
 
+        // create control
+        controls = new OrbitControls( camera, renderer.domElement );
+        
         // set renderer attributes
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( window.innerWidth, window.innerHeight );
 
         // add to scene (do not change order)
+        scene.add(object_markers);
         scene.add(object_earth);
         scene.add(object_countries);
-        scene.add(object_markers);
-        scene.add(object_north_pole);
         // scene.add(object_streets);
+        
+        // DEBUG MODE
+        if (DEBUG) {
+            const axesHelper = new THREE.AxesHelper( 100 );
+            scene.add( axesHelper );
+        }
+        
+        // update controls
+        controls.update();
+
+        // render
+        renderer.render( scene, camera );
 
         // set onclick listener
         canvas.addEventListener('mousemove', event => {
@@ -120,7 +135,6 @@
             renderer.render( scene, camera );
         })
 
-
         canvas.addEventListener('click', event => {
             event.preventDefault();
 
@@ -136,13 +150,6 @@
             })
         })
 
-
-        // update control
-        controls.update();
-
-        // render
-        renderer.render( scene, camera );
-        
         // set flag ready
         ready = true;
     })
@@ -183,14 +190,13 @@
 
         // render
         renderer.render( scene, camera );
-
     }
 
 
     export const move_to_LatLng = (lat, lng, radius) => {
 
         // convert to px
-        const { x, y, z } = vertex([lat, lng], radius);
+        const { x, y, z } = vertex([lng, lat], radius);
 
         // position the camera right above
         camera.position.x = x;
@@ -204,53 +210,6 @@
         renderer.render( scene, camera );
 
         return [x, y, z];
-    }
-
-
-    export const orient_north_up = async () => {
-
-        // init process variables
-        let last_last_y = 0;
-        let last_y = 0;
-
-        // rotate the camera to face origin
-        camera.lookAt( 0, 0, 0 );
-
-        // initial camera rotation
-        const initial_rotation = camera.rotation.z;
-
-
-        await new Promise(resolve => {
-
-            function brute_force(){
-                
-                // extract marker of north pole
-                const { x, y } = get_object_screen_position(object_north_pole, camera);
-
-                // check
-                if (last_last_y > last_y && last_y < y) {
-                    resolve();
-                    return;
-                }
-                
-                // update
-                last_last_y = last_y;
-                last_y = y;
-                
-                // rotate camera
-                camera.rotation.z += 0.02;
-                    
-                // render
-                renderer.render( scene, camera );
-
-                // animate
-                requestAnimationFrame( brute_force );
-            }
-
-            brute_force();
-        })
-
-        return camera.rotation.z - initial_rotation;
     }
 
 </script>
