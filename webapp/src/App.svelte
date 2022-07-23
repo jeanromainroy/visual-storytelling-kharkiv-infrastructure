@@ -5,7 +5,7 @@
     import Map from './components/Map/Map.svelte';
 
     // import config
-    import { MAX_DISTANCE, MIN_DISTANCE, CENTER_LAT, CENTER_LNG, START_RADIUS, END_RADIUS } from './config.js';
+    import { CENTER_LAT, CENTER_LNG, START_RADIUS, END_RADIUS } from './config.js';
 
     // map variables
     let map_ready;
@@ -45,11 +45,6 @@
 
         // set hide flag
         hide = true;
-
-        // set controls attributes
-        controls.enableDamping = true;
-        controls.maxDistance = MAX_DISTANCE;
-        controls.minDistance = MIN_DISTANCE;
 
         // adjust controls depending on zoom level
         // const distance_ratio = (controls.getDistance() - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE)
