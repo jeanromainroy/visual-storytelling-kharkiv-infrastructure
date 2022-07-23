@@ -5,7 +5,7 @@ import * as THREE from 'three';
 
 
 // --- DEBUG ---
-export const DEBUG = true;
+export const DEBUG = false;
 
 
 // --- Camera ---

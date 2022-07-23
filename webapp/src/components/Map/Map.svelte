@@ -193,7 +193,7 @@
     }
 
 
-    export const move_to_LatLng = (lat, lng, radius) => {
+    export const move_to_latlng = (lat, lng, radius) => {
 
         // convert to px
         const { x, y, z } = vertex([lng, lat], radius);
@@ -210,6 +210,75 @@
         renderer.render( scene, camera );
 
         return [x, y, z];
+    }
+
+
+    export const distance_between_points = (x0, y0, z0, x1, y1, z1) => {
+        return Math.sqrt( Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2) + Math.pow(z1 - z0, 2) );
+    }
+
+
+    export const animate_to_latlng = async (lat, lng, radius) => {
+
+        // get current position
+        const x0 = camera.position['x'];
+        const y0 = camera.position['y'];
+        const z0 = camera.position['z'];
+
+        // get destination position
+        const destination = vertex([lng, lat], radius);
+        const x1 = destination['x'];
+        const y1 = destination['y'];
+        const z1 = destination['z'];
+
+        // compute distance to destination
+        const distance = distance_between_points(x0, y0, z0, x1, y1, z1);
+
+        // init accumulated steps towards destination 
+        let t = 0.0;
+
+
+        await new Promise((resolve) => {
+            
+            function animate(){
+
+                // compute distance to destination
+                const distance_remaining = distance_between_points(camera.position.x, camera.position.y, camera.position.z, x1, y1, z1);
+
+                // compute step
+                const step = Math.sqrt(distance_remaining / (1.0 * distance)) * 0.01;
+                
+                // increment
+                t += step;
+
+                // make a step towards the destination
+                const _x0 = (x1 - x0) * t + x0;
+                const _y0 = (y1 - y0) * t + y0;
+                const _z0 = (z1 - z0) * t + z0;
+
+                // position the camera right above
+                camera.position.x = _x0;
+                camera.position.y = _y0;
+                camera.position.z = _z0;
+
+                // update control
+                controls.update();
+
+                // render
+                renderer.render( scene, camera );
+
+                // stop 
+                if (t >= 1.0) {
+                    resolve();
+                    return;
+                }
+
+                // animate
+                requestAnimationFrame( animate );
+            }
+
+            animate();
+        });
     }
 
 </script>
