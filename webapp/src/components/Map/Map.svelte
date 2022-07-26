@@ -171,7 +171,16 @@
     })
 
 
-    export const load_image = (url, center_lat, center_lng, width, height) => {
+    export const load_image = (url, lat_1, lng_1, lat_2, lng_2) => {
+
+        // project lat/lng
+        const vector_1 = vertex([lng_1, lat_1]);
+        const vector_2 = vertex([lng_2, lat_2]);
+
+        // compute width & height
+        const distance = distance_between_points(vector_2['x'], vector_2['y'], vector_2['z'], vector_1['x'], vector_1['y'], vector_1['z']);
+        const width = Math.sqrt(distance);
+        const height = width;
 
         // load image as texture
         const texture = new THREE.TextureLoader().load( url );
@@ -186,17 +195,17 @@
         const geometry = new THREE.PlaneGeometry( width, height );
         const plane = new THREE.Mesh( geometry, material );
 
-        // project lat/lng
-        const vector = vertex([center_lng, center_lat]);
-
         // destructure
-        const { x, y, z } = vector;
+        const { x, y, z } = vector_1;
 
         // set position
-        plane.position.set(x, y, z);
+        plane.position.set(vector_1['x'], vector_1['y'], vector_1['z']);
 
         // rotate
         plane.lookAt( 0, 0, 0 );
+
+        // rotate further
+        // plane.rotation.x += Math.PI;
 
         // add to scene
         scene.add( plane );
@@ -239,6 +248,7 @@
         const r = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
         const theta = Math.acos(z / r);
         const phi = Math.atan(y / x);
+        // TODO 
 
         const _x = radius * Math.cos(phi) * Math.sin(theta);
         const _y = radius * Math.sin(phi) * Math.sin(theta);
@@ -381,7 +391,7 @@
         bottom: 0px;
         width: 100%;
         height: 100%;
-        background-color: #eee;
+        background-color: #333;
         z-index: 1;
     }
 

@@ -61,7 +61,7 @@ Satellite imagery of Kharkiv is provided by [Planet](https://www.planet.com/) as
 | Ground Sampling Distance | 0.7m |
 | Pixel Resolution | 0.5m |
 
-Polygons of the incident areas were cropped before and after the shelling. 
+Polygons of the incident areas were cropped before and after the shelling. Then, a command-line [script](./data/satellite-imagery/rasters/info.sh) was used to extract the coordinates of each image. 
 
 
 ## Building Integrity

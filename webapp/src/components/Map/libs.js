@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 
 // import config
-import { EARTH_RADIUS_PX, MARKER_SIZE, MAT_MESH, MAT_LINE, DEBUG } from './config.js';
+import { EARTH_RADIUS_PX, MARKER_SIZE, MAT_MESH, MAT_LINE, EARTH_COLOR, DEBUG } from './config.js';
 
 
 
@@ -33,7 +33,7 @@ export function get_object_screen_position(object, camera){
 
 export function build_earth(){
     const earth_geometry = new THREE.SphereGeometry( EARTH_RADIUS_PX - 0.5, 128, 128);
-    const earth_material = DEBUG ? MAT_MESH(0xFFFFFF, 0.0, false) : MAT_MESH(0xFFFFFF, 1.0, false);
+    const earth_material = DEBUG ? MAT_MESH(0xFFFFFF, 0.0, false) : MAT_MESH(EARTH_COLOR, 1.0, false);
     const object_earth = new THREE.Mesh( earth_geometry, earth_material );
     return object_earth;
 }

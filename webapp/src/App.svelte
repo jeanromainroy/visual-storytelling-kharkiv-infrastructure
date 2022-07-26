@@ -24,17 +24,24 @@
 
     function load_images(){
 
+        // Upper Left ( 309683.500, 5546495.000) ( 36d20'31.37"E, 50d 2'25.04"N)
+        // Lower Left ( 309683.500, 5546190.000) ( 36d20'31.92"E, 50d 2'15.18"N)
+        // Upper Right ( 309992.500, 5546495.000) ( 36d20'46.89"E, 50d 2'25.40"N)
+        // Lower Right ( 309992.500, 5546190.000) ( 36d20'47.44"E, 50d 2'15.53"N)
+        // Center ( 309838.000, 5546342.500) ( 36d20'39.40"E, 50d 2'20.29"N)
+        
         const images = [
-            { 'url': '1.jpg', 'lat': 50.0177357160156, 'lng': 36.245435228443036, 'width': 0.05, 'height': 0.05 }
+            { 'url': '1.jpg', 'center': { 'lat': 50.04028889, 'lng': 36.34204722 }, 'width': 0.0, 'height': 0.0 }
         ];
+
 
         images.forEach(image => {
 
             // destructure
-            const { url, lat, lng, width, height } = image;
+            const { url, center, width, height } = image;
 
             // load
-            load_image(url, lat, lng, width, height);
+            load_image(url, center['lat'], center['lng'], width, height);
         })
     }
 
@@ -56,7 +63,7 @@
         controls.autoRotate = true;
 
         // load images
-        load_images();
+        // load_images();
 
         // set initial position
         move_to_latlng(CENTER_LAT, CENTER_LNG, START_RADIUS);

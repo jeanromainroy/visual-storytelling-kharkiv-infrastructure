@@ -26,6 +26,8 @@ export const MARKER_SIZE = 0.001;
 export const MAX_DISTANCE = EARTH_RADIUS_PX * 3;
 export const MIN_DISTANCE = EARTH_RADIUS_PX * 1.0005;
 
+export const EARTH_COLOR = '#ccc';
+
 
 // --- Materials ---
 export const MAT_POINT = (size, color = 0x000000, opacity = 0.9) => new THREE.PointsMaterial( { size: size, color: color, opacity: opacity, transparent: true } );
