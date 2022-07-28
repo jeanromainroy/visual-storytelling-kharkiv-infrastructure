@@ -113,7 +113,7 @@ Crimes of aggression (Article 8)
 
 ### Dependencies
 
- - Python 3
+ - Python 3 (Pillow, OpenCV)
 
  - Node.js
 

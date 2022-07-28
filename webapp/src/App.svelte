@@ -3,22 +3,28 @@
     // import components
     import Loader from './components/Loader.svelte';
     import Map from './components/Map/Map.svelte';
+    import Canvas from './components/Canvas/Canvas.svelte';
 
     // import raster info
     import rasters from '../dist/rasters/info.json';
+    import basemaps from '../dist/basemaps/info.json';
 
     // import libs
+    import { onMount } from 'svelte';
     import { centerPoint, approx_distance_between_coordinates_km, km_to_px } from './libs/geospatial.js';
 
     // import config
     import { CENTER_LAT, CENTER_LNG, START_RADIUS, END_RADIUS } from './config.js';
-import { EARTH_RADIUS_PX } from './components/Map/config';
+    import { EARTH_RADIUS_PX } from './components/Map/config';
 
     // map variables
     let map_ready;
     let camera, renderer, scene, controls;
-    let markers, countries, earth;
+    let markers;
     let animate_to_latlng, move_to_latlng, load_image;
+
+    // canvas variables
+    let show_image;
 
     // app variables
     let hide = true;
@@ -29,9 +35,36 @@ import { EARTH_RADIUS_PX } from './components/Map/config';
         init(); 
     }
 
-    function load_rasters(){
 
-        const images = rasters.map(d => {
+    function coordinates_to_width_height(coordinates) {
+
+        // extract min/max latitudes and longitudes
+        const lngs = coordinates.map(d => d[0]);
+        const lats = coordinates.map(d => d[1]);
+        const max_lat = Math.max(...lats);
+        const min_lat = Math.min(...lats);
+        const max_lng = Math.max(...lngs);
+        const min_lng = Math.min(...lngs);
+        const ave_lat = (max_lat + min_lat) / 2.0;
+        const ave_lng = (max_lng + min_lng) / 2.0;
+
+        // compute distance between extrema
+        const width_km = approx_distance_between_coordinates_km(ave_lat, min_lng, ave_lat, max_lng);
+        const height_km = approx_distance_between_coordinates_km(min_lat, ave_lng, max_lat, ave_lng);
+
+        // find width & height
+        const width_px = km_to_px(width_km, EARTH_RADIUS_PX);
+        const height_px = km_to_px(height_km, EARTH_RADIUS_PX);
+
+        return {
+            'width': width_px, 
+            'height': height_px
+        }
+    }
+
+
+    function load_rasters(){
+        rasters.forEach(d => {
 
             // destructure
             const { filename, wgs84Extent, size } = d;
@@ -40,38 +73,35 @@ import { EARTH_RADIUS_PX } from './components/Map/config';
             // find center point
             const center = centerPoint(coordinates);
 
-            // extract min/max latitudes and longitudes
-            const lngs = coordinates.map(d => d[0]);
-            const lats = coordinates.map(d => d[1]);
-            const max_lat = Math.max(...lats);
-            const min_lat = Math.min(...lats);
-            const max_lng = Math.max(...lngs);
-            const min_lng = Math.min(...lngs);
-            const ave_lat = (max_lat + min_lat) / 2.0;
-            const ave_lng = (max_lng + min_lng) / 2.0;
-
-            // compute distance between extrema
-            const width_km = approx_distance_between_coordinates_km(ave_lat, min_lng, ave_lat, max_lng);
-            const height_km = approx_distance_between_coordinates_km(min_lat, ave_lng, max_lat, ave_lng);
-
             // find width & height
-            const width_px = km_to_px(width_km, EARTH_RADIUS_PX);
-            const height_px = km_to_px(height_km, EARTH_RADIUS_PX);
-
-            return {
-                'url': `rasters/${filename}.tif.png`, 'center': { 'lat': center[1], 'lng': center[0] }, 'width': width_px, 'height': height_px
-            }
-        })
-
-        images.forEach(image => {
-
-            // destructure
-            const { url, center, width, height } = image;
+            const { width, height } = coordinates_to_width_height(coordinates);
 
             // load
-            load_image(url, center['lat'], center['lng'], width, height);
+            load_image(`rasters/${filename}.tif.png`, center[1], center[0], width, height);
         })
     }
+
+
+    function load_basemaps(){
+        basemaps.forEach(d => {
+
+            // destructure
+            const { filename, wgs84Extent, size } = d;
+            const coordinates = wgs84Extent['coordinates'][0];
+            
+            // find center point
+            const center = centerPoint(coordinates);
+
+            // find width & height
+            const { width, height } = coordinates_to_width_height(coordinates);
+
+            if (filename.includes('highway')) return;
+
+            // load
+            load_image(`basemaps/${filename}.tif.png`, center[1], center[0], width, height, true);
+        });
+    }
+
 
     async function init() {
 
@@ -91,7 +121,9 @@ import { EARTH_RADIUS_PX } from './components/Map/config';
         controls.autoRotate = true;
 
         // load images
+        load_basemaps();
         load_rasters();
+
 
         // set initial position
         move_to_latlng(CENTER_LAT, CENTER_LNG, START_RADIUS);
@@ -136,6 +168,15 @@ import { EARTH_RADIUS_PX } from './components/Map/config';
     }
 
 
+
+    onMount(() => {
+
+        const image_url = 'pictures/16.jpeg';
+        const svg_url = 'pictures/16.svg';
+
+        show_image(image_url, svg_url)
+    })
+
 </script>
 
 
@@ -148,9 +189,10 @@ import { EARTH_RADIUS_PX } from './components/Map/config';
 <Map
     bind:ready={map_ready} 
     bind:camera={camera} bind:scene={scene} bind:renderer={renderer} bind:controls={controls}
-    bind:object_countries={countries} bind:object_earth={earth} bind:object_markers={markers}
     bind:move_to_latlng={move_to_latlng} bind:animate_to_latlng={animate_to_latlng} bind:load_image={load_image}
 />
+
+<Canvas bind:show={show_image}/>
 
 
 <style>

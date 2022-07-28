@@ -3,7 +3,7 @@
     // properties
     export let canvas;
     export let camera, renderer, scene, raycaster, mouse, controls;
-    export let object_markers, object_countries, object_earth, object_streets;
+    export let object_markers, object_countries, object_earth;
     export let ready = false;
 
     // import libs
@@ -21,8 +21,7 @@
 
     // import geojsons
     import topology from './assets/world-topography-110m.json';
-    import incidents from '../../../../data/incidents.json';
-    import streets from '../../../../data/satellite-imagery/vectors/kharkiv-highways.json';
+    import incidents from '../../../dist/incidents.json';
 
     // prepare the world's GeoJSON MultiLineString in spherical coordinates
     const countries = topojson.mesh(topology, topology['objects']['countries']);
@@ -34,7 +33,6 @@
     object_earth = build_earth();
     object_countries = build_paths(countries['coordinates']);
     object_markers = build_markers(incidents['features']);
-    object_streets = build_lines(streets['features'])
 
     // variables
     let marker_highlighted = false;
@@ -97,13 +95,6 @@
         scene.add(object_markers);
         scene.add(object_earth);
         scene.add(object_countries);
-        // scene.add(object_streets);
-        
-        // DEBUG MODE
-        if (DEBUG) {
-            const axesHelper = new THREE.AxesHelper( 100 );
-            scene.add( axesHelper );
-        }
         
         // update controls
         controls.update();
@@ -171,7 +162,7 @@
     })
 
 
-    export const load_image = (url, center_lat, center_lng, width, height) => {
+    export const load_image = (url, center_lat, center_lng, width, height, transparent = false ) => {
 
         // project lat/lng
         const center = vertex([center_lng, center_lat]);
@@ -183,7 +174,7 @@
         const texture = new THREE.TextureLoader().load( url );
 
         // immediately use the texture for material creation
-        const material = new THREE.MeshBasicMaterial( { map: texture } );
+        const material = new THREE.MeshBasicMaterial( { map: texture, transparent: transparent } );
 
         // create plane
         const geometry = new THREE.PlaneGeometry( width, height );
@@ -234,8 +225,6 @@
     export const distance_between_points = (x0, y0, z0, x1, y1, z1) => {
         return Math.sqrt( Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2) + Math.pow(z1 - z0, 2) );
     }
-
-
 
 
     export const animate_to_xyz = async (x1, y1, z1) => {
