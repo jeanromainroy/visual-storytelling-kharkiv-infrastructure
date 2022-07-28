@@ -4,8 +4,15 @@
     import Loader from './components/Loader.svelte';
     import Map from './components/Map/Map.svelte';
 
+    // import raster info
+    import rasters from '../dist/rasters/info.json';
+
+    // import libs
+    import { centerPoint, approx_distance_between_coordinates_km, km_to_px } from './libs/geospatial.js';
+
     // import config
     import { CENTER_LAT, CENTER_LNG, START_RADIUS, END_RADIUS } from './config.js';
+import { EARTH_RADIUS_PX } from './components/Map/config';
 
     // map variables
     let map_ready;
@@ -22,18 +29,39 @@
         init(); 
     }
 
-    function load_images(){
+    function load_rasters(){
 
-        // Upper Left ( 309683.500, 5546495.000) ( 36d20'31.37"E, 50d 2'25.04"N)
-        // Lower Left ( 309683.500, 5546190.000) ( 36d20'31.92"E, 50d 2'15.18"N)
-        // Upper Right ( 309992.500, 5546495.000) ( 36d20'46.89"E, 50d 2'25.40"N)
-        // Lower Right ( 309992.500, 5546190.000) ( 36d20'47.44"E, 50d 2'15.53"N)
-        // Center ( 309838.000, 5546342.500) ( 36d20'39.40"E, 50d 2'20.29"N)
-        
-        const images = [
-            { 'url': '1.jpg', 'center': { 'lat': 50.04028889, 'lng': 36.34204722 }, 'width': 0.0, 'height': 0.0 }
-        ];
+        const images = rasters.map(d => {
 
+            // destructure
+            const { filename, wgs84Extent, size } = d;
+            const coordinates = wgs84Extent['coordinates'][0];
+            
+            // find center point
+            const center = centerPoint(coordinates);
+
+            // extract min/max latitudes and longitudes
+            const lngs = coordinates.map(d => d[0]);
+            const lats = coordinates.map(d => d[1]);
+            const max_lat = Math.max(...lats);
+            const min_lat = Math.min(...lats);
+            const max_lng = Math.max(...lngs);
+            const min_lng = Math.min(...lngs);
+            const ave_lat = (max_lat + min_lat) / 2.0;
+            const ave_lng = (max_lng + min_lng) / 2.0;
+
+            // compute distance between extrema
+            const width_km = approx_distance_between_coordinates_km(ave_lat, min_lng, ave_lat, max_lng);
+            const height_km = approx_distance_between_coordinates_km(min_lat, ave_lng, max_lat, ave_lng);
+
+            // find width & height
+            const width_px = km_to_px(width_km, EARTH_RADIUS_PX);
+            const height_px = km_to_px(height_km, EARTH_RADIUS_PX);
+
+            return {
+                'url': `rasters/${filename}.tif.png`, 'center': { 'lat': center[1], 'lng': center[0] }, 'width': width_px, 'height': height_px
+            }
+        })
 
         images.forEach(image => {
 
@@ -63,7 +91,7 @@
         controls.autoRotate = true;
 
         // load images
-        // load_images();
+        load_rasters();
 
         // set initial position
         move_to_latlng(CENTER_LAT, CENTER_LNG, START_RADIUS);

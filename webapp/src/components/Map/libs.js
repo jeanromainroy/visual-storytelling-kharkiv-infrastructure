@@ -31,6 +31,53 @@ export function get_object_screen_position(object, camera){
 }
 
 
+export const increase_radius_of_point = (x, y, z, radius) => {
+
+    const r = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
+    const theta = Math.acos(z / r);
+    let phi = Math.atan(y / x);
+
+    // add cadrant
+    if (x < 0 && y >= 0) {
+        phi += Math.PI;
+    } else if (x < 0 && y < 0) {
+        phi -= Math.PI;
+    } else if (x == 0 && y > 0) {
+        phi = Math.PI / 2.0;
+    } else if (x == 0 && y < 0) {
+        phi = -Math.PI / 2.0;
+    }
+
+    const _x = radius * Math.cos(phi) * Math.sin(theta);
+    const _y = radius * Math.sin(phi) * Math.sin(theta);
+    const _z = radius * Math.cos(theta);
+    
+    return [_x, _y, _z];
+}
+
+
+export function normalize(x, y, z) {
+    
+    const r = Math.round(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2))) * 1.0;
+
+    return {
+        'x': x / r,
+        'y': y / r,
+        'z': z / r
+    }
+}
+
+export function rotate_on_own_axis() {
+
+    // // rotation matrix
+    // const rotMat = new THREE.Matrix4();
+    // rotMat.makeRotationAxis( new THREE.Vector3(normalized_position['x'], normalized_position['y'], normalized_position['z']), 0.0 )
+
+    // // apply
+    // plane.applyMatrix4(rotMat);
+}
+
+
 export function build_earth(){
     const earth_geometry = new THREE.SphereGeometry( EARTH_RADIUS_PX - 0.5, 128, 128);
     const earth_material = DEBUG ? MAT_MESH(0xFFFFFF, 0.0, false) : MAT_MESH(EARTH_COLOR, 1.0, false);

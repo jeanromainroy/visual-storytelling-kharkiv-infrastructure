@@ -14,10 +14,10 @@
     import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
     // import scripts
-    import { build_earth, build_paths, build_markers, build_lines, vertex } from "./libs.js";
+    import { build_earth, build_paths, build_markers, build_lines, vertex, increase_radius_of_point, normalize } from "./libs.js";
 
     // import config
-    import { fov, near, far, DEBUG, MAX_DISTANCE, MIN_DISTANCE, EARTH_RADIUS_PX } from './config.js';
+    import { fov, near, far, DEBUG, MAX_DISTANCE, MIN_DISTANCE, EARTH_RADIUS_PX, MAT_MESH } from './config.js';
 
     // import geojsons
     import topology from './assets/world-topography-110m.json';
@@ -171,44 +171,37 @@
     })
 
 
-    export const load_image = (url, lat_1, lng_1, lat_2, lng_2) => {
+    export const load_image = (url, center_lat, center_lng, width, height) => {
 
         // project lat/lng
-        const vector_1 = vertex([lng_1, lat_1]);
-        const vector_2 = vertex([lng_2, lat_2]);
+        const center = vertex([center_lng, center_lat]);
 
-        // compute width & height
-        const distance = distance_between_points(vector_2['x'], vector_2['y'], vector_2['z'], vector_1['x'], vector_1['y'], vector_1['z']);
-        const width = Math.sqrt(distance);
-        const height = width;
+        // normalize
+        const center_normalized = normalize(center['x'], center['y'], center['z'])
 
         // load image as texture
         const texture = new THREE.TextureLoader().load( url );
 
-        // get texture image info
-        // const { height, width } = texture.image;
-
         // immediately use the texture for material creation
-        const material = new THREE.MeshBasicMaterial( { map: texture, side: THREE.DoubleSide } );
+        const material = new THREE.MeshBasicMaterial( { map: texture } );
 
         // create plane
         const geometry = new THREE.PlaneGeometry( width, height );
         const plane = new THREE.Mesh( geometry, material );
 
-        // destructure
-        const { x, y, z } = vector_1;
-
         // set position
-        plane.position.set(vector_1['x'], vector_1['y'], vector_1['z']);
+        plane.position.set(center['x'], center['y'], center['z']);
 
-        // rotate
-        plane.lookAt( 0, 0, 0 );
-
-        // rotate further
-        // plane.rotation.x += Math.PI;
+        // rotate to face opposite of earths center
+        plane.lookAt( center_normalized['x'] * EARTH_RADIUS_PX * 2, center_normalized['y'] * EARTH_RADIUS_PX * 2, center_normalized['z'] * EARTH_RADIUS_PX * 2 );
 
         // add to scene
         scene.add( plane );
+
+        // add sphere 
+        // sphere.position.set(center['x'], center['y'], center['z']);
+        // const sphere = new THREE.Mesh( new THREE.SphereGeometry(0.001, 12, 12), MAT_MESH(0x00FF00, 1.0, false))
+        // scene.add( sphere );
 
         // update control
         controls.update();
@@ -243,19 +236,6 @@
     }
 
 
-    export const increase_radius_of_point = (x, y, z, radius) => {
-
-        const r = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
-        const theta = Math.acos(z / r);
-        const phi = Math.atan(y / x);
-        // TODO 
-
-        const _x = radius * Math.cos(phi) * Math.sin(theta);
-        const _y = radius * Math.sin(phi) * Math.sin(theta);
-        const _z = radius * Math.cos(theta);
-        
-        return [_x, _y, _z];
-    }
 
 
     export const animate_to_xyz = async (x1, y1, z1) => {

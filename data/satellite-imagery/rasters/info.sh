@@ -23,6 +23,12 @@ do
     # pass to python to parse json
     python3 $PYSCRIPT1 $FILEPATH $TMPPATH
 
+    # save .tif to .png
+    sips -s format png $FILEPATH --out "$FILEPATH.png"
+
+    # copy to webapp
+    cp "$FILEPATH.png" ../../../webapp/public/rasters/
+
 done
 
 
@@ -34,3 +40,6 @@ rm $TMPPATH
 rm *.txt
 rm *.xml
 rm *.tif.json
+
+# copy to webapp
+cp *.json ../../../webapp/public/rasters/
