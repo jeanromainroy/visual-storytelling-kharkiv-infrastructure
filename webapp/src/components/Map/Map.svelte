@@ -322,11 +322,15 @@
     }
 
 
-    export const highlight_marker = (marker_id) => {
+    export const highlight_marker = (incident_id) => {
+
+        // colors
+        const dark_red = '0xff0000';
+        const light_red = '0xffcccb';
 
         // reset
-        if (marker_id === undefined || marker_id === null) {
-            object_markers.children.forEach(obj => obj.material.color.setHex( 0xff0000 ));
+        if (incident_id === undefined || incident_id === null) {
+            object_markers.children.forEach(obj => obj.material.color.setHex( dark_red ));
             return;
         }
 
@@ -337,10 +341,10 @@
             const id = obj['properties']['ID'];
 
             // check
-            if (+id === +marker_id) {
-                obj.material.color.setHex( 0xff0000 )
+            if (+id === +incident_id) {
+                obj.material.color.setHex( dark_red )
             } else {
-                obj.material.color.setHex( 0xffcccb )
+                obj.material.color.setHex( light_red )
             }
         });
     }

@@ -4,6 +4,7 @@
     import Loader from './components/Loader.svelte';
     import Map from './components/Map/Map.svelte';
     import Canvas from './components/Canvas/Canvas.svelte';
+    import Timeline from './components/Timeline/Timeline.svelte';
 
     // import story scripts
     import { update, load_basemaps } from './script.js';
@@ -17,7 +18,8 @@
     // map variables
     let map_ready;
     let controls;
-    let move_to_latlng, animate_to_latlng, highlight_marker, load_image;
+    let move_to_latlng, animate_to_latlng, highlight_marker_map, load_image;
+    let highlight_marker_timeline;
 
     // canvas variables
     let show_image;
@@ -36,7 +38,7 @@
         move_to_latlng(CENTER_LAT, CENTER_LNG, START_RADIUS);
 
         // load images
-        load_basemaps(load_image);
+        // load_basemaps(load_image);
         
         // set hide flag
         hide = false;
@@ -69,6 +71,12 @@
     }
 
 
+    const highlight_marker = (incident_id) => {
+        highlight_marker_map(incident_id);
+        highlight_marker_timeline(incident_id);
+    }
+    
+
     // on UI loaded
     onMount(() => {
         set_section_scroll_observer();     
@@ -98,7 +106,7 @@
 <Map
     bind:ready={map_ready} 
     bind:controls={controls}
-    bind:load_image={load_image} bind:move_to_latlng={move_to_latlng} bind:animate_to_latlng={animate_to_latlng} bind:highlight_marker={highlight_marker}
+    bind:load_image={load_image} bind:move_to_latlng={move_to_latlng} bind:animate_to_latlng={animate_to_latlng} bind:highlight_marker={highlight_marker_map}
 />
 
 
@@ -129,6 +137,9 @@
 <!-- Image Container -->
 <Canvas bind:show={show_image}/>
 
+
+<!-- Timeline -->
+<Timeline bind:highlight_marker={highlight_marker_timeline}/>
 
 
 <style>
