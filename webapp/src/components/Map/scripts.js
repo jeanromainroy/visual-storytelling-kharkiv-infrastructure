@@ -81,7 +81,7 @@ export function rotate_on_own_axis() {
 export function build_earth(){
 
     // outer sphere
-    const earth_geometry = new THREE.SphereGeometry( EARTH_RADIUS_PX - 1, 128, 128);
+    const earth_geometry = new THREE.SphereGeometry( EARTH_RADIUS_PX - 0.5, 128, 128);
     const earth_material = new THREE.MeshBasicMaterial( { color: 0xFFFFFF } );
     const object_earth = new THREE.Mesh( earth_geometry, earth_material );
 

@@ -63,6 +63,8 @@ Satellite imagery of Kharkiv is provided by [Planet](https://www.planet.com/) as
 
 Polygons of the incident areas were cropped before and after the shelling. Then, a command-line [script](./data/satellite-imagery/rasters/info.sh) was used to extract the [coordinates](./data/satellite-imagery/rasters/info.json) of each image. 
 
+[Maxar](https://www.arcgis.com/apps/View/index.html?appid=91e80990481145888d648b1fad13593a)
+
 
 ## Building Integrity
 

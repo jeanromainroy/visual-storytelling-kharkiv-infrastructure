@@ -9,7 +9,6 @@
     // import libs
     import { onMount } from "svelte";
     import * as THREE from 'three';
-    import * as d3 from 'd3';
     import * as topojson from 'topojson-client';
     import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
@@ -17,7 +16,7 @@
     import { build_earth, build_paths, build_markers, build_lines, vertex, increase_radius_of_point, normalize } from "./scripts.js";
 
     // import config
-    import { fov, near, far, DEBUG, MAX_DISTANCE, MIN_DISTANCE, EARTH_RADIUS_PX, MAT_MESH, MOVE_TO_RADIUS } from './config.js';
+    import { fov, near, far, MAX_DISTANCE, MIN_DISTANCE, EARTH_RADIUS_PX, MAT_MESH, MOVE_TO_RADIUS } from './config.js';
 
     // import geojsons
     import topology from './assets/world-topography-110m.json';
@@ -36,40 +35,6 @@
 
     // variables
     let marker_highlighted = false;
-
-
-    // helper functions
-    function reset_color_of_markers(){
-
-        // check if we have highlighted markers
-        if (!marker_highlighted) return;
-
-        // reset color
-        object_markers.children.forEach(obj => obj.material.color.setHex( 0xff0000 ));
-
-        // set flag
-        marker_highlighted = false;
-    }
-
-
-    function get_markers_from_mouse_event(event) {
-
-        // destructure event
-        const { clientX, clientY } = event;
-
-        // set mouse x,y attributes
-        mouse.x = (clientX / window.innerWidth) * 2 - 1;
-        mouse.y = -(clientY / window.innerHeight) * 2 + 1;
-
-        // update
-        camera.updateMatrixWorld();
-        raycaster.setFromCamera(mouse, camera);
-
-        // check if the mouse intersects with markers (i.e. first children, because added first)
-        const intersects = raycaster.intersectObjects([scene.children[0]]);
-
-        return intersects;
-    }
 
 
     onMount(async () => {
@@ -106,6 +71,76 @@
         controls.enableDamping = true;
         controls.maxDistance = MAX_DISTANCE;
         controls.minDistance = MIN_DISTANCE;
+
+        // set controls speed
+        controls.rotateSpeed = 0.0007
+        controls.panSpeed = 0.0007
+        controls.zoomSpeed = 0.0007
+
+        // disable user controls
+        controls.enabled = false;
+
+        // set listeners
+        // set_listeners();
+
+        // user control animation
+        animate();
+
+        // rotate
+        controls.autoRotate = true;
+
+        // set flag ready
+        ready = true;
+    })
+
+
+    // animate map
+    function animate(){
+        requestAnimationFrame( animate );
+
+        // update control
+        controls.update();
+
+        // render
+        renderer.render( scene, camera );
+    }
+
+
+    // helper functions
+    function reset_color_of_markers(){
+
+        // check if we have highlighted markers
+        if (!marker_highlighted) return;
+
+        // reset color
+        object_markers.children.forEach(obj => obj.material.color.setHex( 0xff0000 ));
+
+        // set flag
+        marker_highlighted = false;
+    }
+
+
+    function get_markers_from_mouse_event(event) {
+
+        // destructure event
+        const { clientX, clientY } = event;
+
+        // set mouse x,y attributes
+        mouse.x = (clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+
+        // update
+        camera.updateMatrixWorld();
+        raycaster.setFromCamera(mouse, camera);
+
+        // check if the mouse intersects with markers (i.e. first children, because added first)
+        const intersects = raycaster.intersectObjects([scene.children[0]]);
+
+        return intersects;
+    }
+
+
+    function set_listeners() {
 
         // set onclick listener
         canvas.addEventListener('mousemove', event => {
@@ -157,9 +192,7 @@
             animate_to_xyz(_x, _y, _z)
         })
 
-        // set flag ready
-        ready = true;
-    })
+    }
 
 
     export const load_image = (url, center_lat, center_lng, width, height, transparent = false, opacity = 1.0 ) => {
@@ -291,6 +324,12 @@
 
     export const highlight_marker = (marker_id) => {
 
+        // reset
+        if (marker_id === undefined || marker_id === null) {
+            object_markers.children.forEach(obj => obj.material.color.setHex( 0xff0000 ));
+            return;
+        }
+
         // update color
         object_markers.children.forEach(obj => {
 
@@ -371,7 +410,7 @@
 
 </script>
 
-<canvas id="bg" class="fade-in-long"></canvas>
+<canvas id="bg"></canvas>
 
 <style>
 
@@ -384,7 +423,6 @@
         width: 100%;
         height: 100%;
         background-color: #333;
-        z-index: 1;
     }
 
 </style>

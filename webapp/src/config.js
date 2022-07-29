@@ -4,7 +4,7 @@
 import { EARTH_RADIUS_PX } from "./components/Map/config.js";
 
 // city of interest
-export const START_RADIUS = EARTH_RADIUS_PX * 3;
+export const START_RADIUS = EARTH_RADIUS_PX * 1.8;
 export const END_RADIUS = EARTH_RADIUS_PX * 1.002;
 
 

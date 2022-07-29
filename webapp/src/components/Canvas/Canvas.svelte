@@ -126,7 +126,8 @@
 </script>
 
 <!-- The Image Box -->
-<aside id="image_box" style="display: {display ? 'block' : 'none'};">
+{#if display}
+<aside id="image_box" class="fade-in">
     <section>
         <div id="canvas-container">
             <canvas id="img-canvas"></canvas>
@@ -134,6 +135,7 @@
         </div>
     </section>
 </aside>
+{/if}
 
 
 <style>
@@ -174,6 +176,125 @@
 
     #img-canvas {
         opacity: 0.5;
+    }
+
+
+    /* --- Transtions --- */
+    .fade-in {
+        animation: fadeIn 1.5s;
+        -webkit-animation: fadeIn 1.5s;
+        -moz-animation: fadeIn 1.5s;
+        -o-animation: fadeIn 1.5s;
+        -ms-animation: fadeIn 1.5s;
+        opacity: 1.0;
+    }
+
+    .fade-in-long {
+        animation: fadeIn 3.0s;
+        -webkit-animation: fadeIn 3.0s;
+        -moz-animation: fadeIn 3.0s;
+        -o-animation: fadeIn 3.0s;
+        -ms-animation: fadeIn 3.0s;
+        opacity: 1.0;
+    }
+
+    .fade-out {
+        animation: fadeOut 0.5s;
+        -webkit-animation: fadeOut 0.5s;
+        -moz-animation: fadeOut 0.5s;
+        -o-animation: fadeOut 0.5s;
+        -ms-animation: fadeOut 0.5s;
+        opacity: 0.0;
+    }
+
+    .footer-up {
+        animation: moveUp 0.5s;
+        -webkit-animation: moveUp 0.5s;
+        -moz-animation: moveUp 0.5s;
+        -o-animation: moveUp 0.5s;
+        -ms-animation: moveUp 0.5s;
+        height: var(--footer-height);
+    }
+
+
+    /* --- Fade in --- */
+    @keyframes fadeIn {
+        0% {opacity:0;}
+        100% {opacity:1;}
+    }
+
+    @-moz-keyframes fadeIn {
+        0% {opacity:0;}
+        100% {opacity:1;}
+    }
+
+    @-webkit-keyframes fadeIn {
+        0% {opacity:0;}
+        100% {opacity:1;}
+    }
+
+    @-o-keyframes fadeIn {
+        0% {opacity:0;}
+        100% {opacity:1;}
+    }
+
+    @-ms-keyframes fadeIn {
+        0% {opacity:0;}
+        100% {opacity:1;}
+    }
+
+
+    /* --- Move Up --- */
+    @keyframes moveUp {
+        0% {height: 0px}
+        100% {height: var(--footer-height);}
+    }
+
+    @-moz-keyframes moveUp {
+        0% {height: 0px}
+        100% {height: var(--footer-height);}
+    }
+
+    @-webkit-keyframes moveUp {
+        0% {height: 0px}
+        100% {height: var(--footer-height);}
+    }
+
+    @-o-keyframes moveUp {
+        0% {height: 0px}
+        100% {height: var(--footer-height);}
+    }
+
+    @-ms-keyframes moveUp {
+        0% {height: 0px}
+        100% {height: var(--footer-height);}
+    }
+
+
+    /* --- Fade Out --- */
+    @keyframes fadeOut {
+        0% {opacity:1;}
+        100% {opacity:0;}
+    }
+
+    @-moz-keyframes fadeOut {
+        0% {opacity:1;}
+        100% {opacity:0;}
+    }
+
+    @-webkit-keyframes fadeOut {
+        0% {opacity:1;}
+        100% {opacity:0;}
+    }
+
+    @-o-keyframes fadeOut {
+        0% {opacity:1;}
+        100% {opacity:0;}
+    }
+
+    @-ms-keyframes fadeOut {
+        0% {opacity:1;}
+        100% {opacity:0;}
     }
 
 </style>
