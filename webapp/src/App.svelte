@@ -23,7 +23,7 @@
     // map variables
     let map_ready;
     let camera, renderer, scene, controls;
-    let animate_to_latlng, move_to_latlng, load_image;
+    let animate_to_latlng, move_to_latlng, load_image, highlight_marker;
 
     // canvas variables
     let show_image;
@@ -116,6 +116,7 @@
         // select random incident
         const rand_index = Math.floor(Math.random() * incidents['features'].length); 
         const rand_incident = incidents['features'][rand_index];
+        const rand_incident_id = rand_incident['properties']['ID'];
 
         // destructure
         const geometry_type = rand_incident['geometry']['type'];
@@ -126,6 +127,9 @@
         const location = geometry_type === 'Point' ? coordinates : coordinates[0];
         const lng = location[0];
         const lat = location[1];
+
+        // highlight marker
+        highlight_marker(rand_incident_id);
 
         // move to animation
         await animate_to_latlng(lat, lng);
@@ -241,7 +245,7 @@
 <Map
     bind:ready={map_ready} 
     bind:camera={camera} bind:scene={scene} bind:renderer={renderer} bind:controls={controls}
-    bind:move_to_latlng={move_to_latlng} bind:animate_to_latlng={animate_to_latlng} bind:load_image={load_image}
+    bind:move_to_latlng={move_to_latlng} bind:animate_to_latlng={animate_to_latlng} bind:load_image={load_image} bind:highlight_marker={highlight_marker}
 />
 
 <Canvas bind:show={show_image}/>

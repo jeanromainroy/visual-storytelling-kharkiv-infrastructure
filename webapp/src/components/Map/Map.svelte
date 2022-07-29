@@ -289,6 +289,24 @@
     }
 
 
+    export const highlight_marker = (marker_id) => {
+
+        // update color
+        object_markers.children.forEach(obj => {
+
+            // destructure
+            const id = obj['properties']['ID'];
+
+            // check
+            if (+id === +marker_id) {
+                obj.material.color.setHex( 0xff0000 )
+            } else {
+                obj.material.color.setHex( 0xffcccb )
+            }
+        });
+    }
+
+
     export const animate_to_latlng = async (lat, lng, radius = MOVE_TO_RADIUS) => {
 
         // get current position
