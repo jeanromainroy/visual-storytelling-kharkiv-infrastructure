@@ -1,32 +1,17 @@
 <script>
 
-    // ------- STYLING -------
-    const textBottomPadding = 2
-    const textFontStyle = 'bold 14px Arial'
-    const overlayBlackout_color = 'black';
-    const overlayBlackout_opacity = '1.0';
-    const overlayFailed_color = 'red';
-    const overlayFailed_opacity = '0.2';
-    const overlayNull_color = 'orange';
-    const overlayNull_opacity = '0.2';
-    const overlayString_color = 'SaddleBrown';
-    const overlayString_opacity = '0.2';
-    const overlayEmpty_color = 'SkyBlue';
-    const overlayEmpty_opacity = '0.4';
-    const overlayDecoded_color = 'green';
-    const overlayDecoded_opacity = '0.2';
-    const overlayOnMouseOver_color = 'white';
-    const overlayOnMouseOver_opacity = '0.8';
-    // -----------------------
+    // import scripts
+    import { computeResizeFactor, load_image, load_lines, resize_multilines } from './scripts.js';
+
+    // import config
+    import { line_opacity, line_color } from './config.js';
 
     // ui elements
     let imgCanvas, imgContext, overlayCanvas, overlayContext;
     let canvasWidth, canvasHeight;
 
     // variables
-    let image = null;
     let display = false;
-    let ready = false;
 
 
     function reset(){
@@ -49,132 +34,13 @@
     }
 
 
-    function computeResizeFactor(image_width, image_height) {
-
-        // set actual width
-        const { clientWidth, clientHeight } = document.getElementById('canvas-container');
-
-        // init
-        let offsetLeft, offsetTop, width, height, resizeFactor;
-
-        if (image_width < clientWidth && image_height < clientHeight) {
-            // if smaller than canvas
-            offsetLeft = Math.round((clientWidth - image_width) / 2.0)
-            offsetTop = Math.round((clientHeight - image_height) / 2.0)
-            width = image_width;
-            height = image_height;
-            resizeFactor = 1.0;
-
-        } else {
-            // if bigger than canvas
-            resizeFactor = Math.min(clientWidth / (1.0 * image_width), clientHeight / (1.0 * image_height))
-            width = Math.floor(image_width * resizeFactor)
-            height = Math.floor(image_height * resizeFactor)
-            offsetLeft = Math.round((clientWidth - width) / 2.0)
-            offsetTop = Math.round((clientHeight - height) / 2.0)
-        }
-
-        return {
-            'offsetLeft': offsetLeft,
-            'offsetTop': offsetTop,
-            'width': width,
-            'height': height,
-            'resizeFactor': resizeFactor
-        }
-    }
-
-
-    async function load_lines(svg_url) {
-
-        // init
-        let multilines = []
-        let success = false;
-
-        // send a request for the image
-        await new Promise(function (resolve, reject) {
-
-            // init xml requests
-            const xhr = new XMLHttpRequest();
-            xhr.open("GET", svg_url, false);
-
-            // Following line is just to be on the safe side;
-            // not needed if your server delivers SVG with correct MIME type
-            xhr.overrideMimeType("image/svg+xml");
-            xhr.onload = () => {
-                success = true;
-                
-                // extract polygons
-                const polygons = xhr.responseXML.getElementsByTagName('polygon');
-                
-                // go through
-                for (const polygon of polygons) {
-
-                    // init line
-                    let multiline = [];
-
-                    // push points
-                    for (const point of polygon['points']) {
-
-                        // destructure
-                        const { x, y } = point;
-
-                        // push
-                        multiline.push( [ x, y ] )
-                    }
-
-                    // push 
-                    multilines.push(multiline)
-                }
-                
-                resolve();
-            }
-            xhr.onerror = () => {
-                resolve();
-            }
-
-            xhr.send("");
-        })
-
-        // validate
-        if (!success) return null;
-
-        return multilines;
-    }
-
-
-    async function load_image(image_url){
-
-        // init
-        let asset; 
-        let success = false;
-
-        // send a request for the image
-        await new Promise(function (resolve, reject) {
-            asset = new Image()
-            asset.onload = () => {
-                resolve(asset);
-                success = true;
-            }
-            asset.onerror = () => {
-                resolve(null);
-            }
-            asset.src = image_url
-        })
-
-        // validate
-        if (!success) return null;
-
-        return asset;
-    }
-    
-
     function render_overlay (multilines) {
 
         // clear Overlay
         overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
 
         multilines.forEach((multiline, i) => {
-           
+        
             setTimeout(() => {
 
                 // make path
@@ -192,17 +58,21 @@
                 overlayContext.closePath();
 
                 // failed
-                overlayContext.globalAlpha = overlayBlackout_opacity
-                overlayContext.strokeStyle = 'red'
+                overlayContext.globalAlpha = line_opacity
+                overlayContext.strokeStyle = line_color
                 overlayContext.stroke()
 
             }, i * 50)
         })
     }
-    
+
+
 
     // function to launch the image box
     export async function show(image_url, svg_url){
+
+        // set display flag
+        display = false;
 
         // load image asset
         const asset = await load_image(image_url);
@@ -210,14 +80,18 @@
 
         // load svg asset
         const multilines = await load_lines(svg_url);
+        if (multilines === undefined || multilines === null) return;
 
         // compute width, height and rotation
-        let image_width = asset.width;
-        let image_height = asset.height;
+        const image_width = asset.width;
+        const image_height = asset.height;
 
         // set canvas width and height
         canvasWidth = image_width;
         canvasHeight = image_height;
+
+        // set display flag
+        display = true;
 
         // draw
         setTimeout(async () => {
@@ -225,11 +99,14 @@
             // reset canvas
             reset();
 
+            // set dimensions of canvas
+            const { clientWidth, clientHeight } = document.getElementById('canvas-container');
+
             // resize factor
-            const { width, height, resizeFactor } = computeResizeFactor(image_width, image_height);
+            const { width, height, resizeFactor } = computeResizeFactor(clientWidth, clientHeight, image_width, image_height);
 
             // draw (with the rotation)
-            imgContext.drawImage(asset, 0, 0, asset.width, asset.height);
+            imgContext.drawImage(asset, 0, 0, image_width, image_height);
 
             // resize
             imgCanvas.style.width = `${width}px`;
@@ -237,36 +114,8 @@
             overlayCanvas.width = width
             overlayCanvas.height = height
 
-            // offset
-            const offsetLeft = 0;
-            const offsetTop = 0;
-
-            // init 
-            let multilines_resized = [];
-
-            // resize the rectangles
-            multilines.forEach(multiline => {
-
-                // init
-                let multiline_resized = [];
-
-                // go through
-                multiline.forEach(point => {
-
-                    // destructure
-                    const [x, y] = point;
-
-                    // resize
-                    const x_resized = Math.round(x * resizeFactor + offsetLeft);
-                    const y_resized = Math.round(y * resizeFactor + offsetTop);
-
-                    // push
-                    multiline_resized.push([x_resized, y_resized]);
-                })
-
-                // push
-                multilines_resized.push(multiline_resized);
-            })
+            // resize 
+            const multilines_resized = resize_multilines(multilines, resizeFactor)
 
             // overlay the data on top of the image
             render_overlay(multilines_resized);
@@ -277,7 +126,7 @@
 </script>
 
 <!-- The Image Box -->
-<aside id="image_box">
+<aside id="image_box" style="display: {display ? 'block' : 'none'};">
     <section>
         <div id="canvas-container">
             <canvas id="img-canvas"></canvas>

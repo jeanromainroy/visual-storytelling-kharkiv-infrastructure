@@ -28,8 +28,10 @@ export const MIN_DISTANCE = EARTH_RADIUS_PX * 1.0005;
 
 export const EARTH_COLOR = '#ccc';
 
+export const MOVE_TO_RADIUS = EARTH_RADIUS_PX * 1.0005;
+
 
 // --- Materials ---
 export const MAT_POINT = (size, color = 0x000000, opacity = 0.9) => new THREE.PointsMaterial( { size: size, color: color, opacity: opacity, transparent: true } );
-export const MAT_LINE = (color = 0x000000) => new THREE.LineBasicMaterial({color: color});
+export const MAT_LINE = (color = 0x000000) => new THREE.LineBasicMaterial({color: color, transparent: true, opacity: 0.4});
 export const MAT_MESH = (color = 0x000000, opacity = 0.9, wireframe = true) => new THREE.MeshBasicMaterial( { color: color, opacity: opacity, wireframe: wireframe, transparent: true } );

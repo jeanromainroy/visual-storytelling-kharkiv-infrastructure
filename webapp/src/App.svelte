@@ -9,6 +9,9 @@
     import rasters from '../dist/rasters/info.json';
     import basemaps from '../dist/basemaps/info.json';
 
+    // import incidents
+    import incidents from '../dist/incidents.json';
+
     // import libs
     import { onMount } from 'svelte';
     import { centerPoint, approx_distance_between_coordinates_km, km_to_px } from './libs/geospatial.js';
@@ -20,7 +23,6 @@
     // map variables
     let map_ready;
     let camera, renderer, scene, controls;
-    let markers;
     let animate_to_latlng, move_to_latlng, load_image;
 
     // canvas variables
@@ -95,11 +97,51 @@
             // find width & height
             const { width, height } = coordinates_to_width_height(coordinates);
 
-            if (filename.includes('highway')) return;
+            // set opacity
+            let opacity = 1.0;
+            if (filename.includes('highway')) {
+                opacity = 0.8;
+            } else {
+                opacity = 0.3;
+            }
 
             // load
-            load_image(`basemaps/${filename}.tif.png`, center[1], center[0], width, height, true);
+            load_image(`basemaps/${filename}.tif.png`, center[1], center[0], width, height, true, opacity );
         });
+    }
+
+
+    async function move_to_random_incident() {
+
+        // select random incident
+        const rand_index = Math.floor(Math.random() * incidents['features'].length); 
+        const rand_incident = incidents['features'][rand_index];
+
+        // destructure
+        const geometry_type = rand_incident['geometry']['type'];
+        const coordinates = rand_incident['geometry']['coordinates'];
+        const properties = rand_incident['properties'];
+
+        // extract location
+        const location = geometry_type === 'Point' ? coordinates : coordinates[0];
+        const lng = location[0];
+        const lat = location[1];
+
+        // move to animation
+        await animate_to_latlng(lat, lng);
+    }
+
+
+    async function animate_random_incidents() {
+        setTimeout(async () => {
+
+            // move
+            await move_to_random_incident();
+
+            // start over
+            animate_random_incidents();
+
+        }, 2000)
     }
 
 
@@ -122,7 +164,7 @@
 
         // load images
         load_basemaps();
-        load_rasters();
+        // load_rasters();
 
 
         // set initial position
@@ -148,11 +190,21 @@
 
             // zoom animation
             await animate_to_latlng(CENTER_LAT, CENTER_LNG, END_RADIUS);
+
+            // start random animation
+            animate_random_incidents();
             
-        }, 3000);
+        }, 6000);
 
         // user control animation
         animate();
+
+        // set
+        // controls.addEventListener( "change", event => {  
+        //     const { x, y, z } = controls.object.position;
+        //     const r = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
+        //     console.log( r ); 
+        // });
     }
     
 
@@ -174,7 +226,7 @@
         const image_url = 'pictures/16.jpeg';
         const svg_url = 'pictures/16.svg';
 
-        show_image(image_url, svg_url)
+        // show_image(image_url, svg_url)
     })
 
 </script>

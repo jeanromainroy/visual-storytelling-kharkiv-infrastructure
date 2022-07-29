@@ -14,10 +14,10 @@
     import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
     // import scripts
-    import { build_earth, build_paths, build_markers, build_lines, vertex, increase_radius_of_point, normalize } from "./libs.js";
+    import { build_earth, build_paths, build_markers, build_lines, vertex, increase_radius_of_point, normalize } from "./scripts.js";
 
     // import config
-    import { fov, near, far, DEBUG, MAX_DISTANCE, MIN_DISTANCE, EARTH_RADIUS_PX, MAT_MESH } from './config.js';
+    import { fov, near, far, DEBUG, MAX_DISTANCE, MIN_DISTANCE, EARTH_RADIUS_PX, MAT_MESH, MOVE_TO_RADIUS } from './config.js';
 
     // import geojsons
     import topology from './assets/world-topography-110m.json';
@@ -80,7 +80,7 @@
         // init elements
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera( fov, window.innerWidth / window.innerHeight, near, far );
-        renderer = new THREE.WebGLRenderer({ alpha: true, canvas: canvas });
+        renderer = new THREE.WebGLRenderer({ alpha: true, canvas: canvas, antialias: true });
         raycaster = new THREE.Raycaster();
         mouse = new THREE.Vector2()
 
@@ -151,7 +151,7 @@
             const { x, y, z } = intersects[0]['object']['position'];
 
             // increase radius
-            const [ _x, _y, _z ] = increase_radius_of_point(x, y, z, EARTH_RADIUS_PX * 1.001)
+            const [ _x, _y, _z ] = increase_radius_of_point(x, y, z, MOVE_TO_RADIUS )
 
             // animate moving to
             animate_to_xyz(_x, _y, _z)
@@ -162,7 +162,7 @@
     })
 
 
-    export const load_image = (url, center_lat, center_lng, width, height, transparent = false ) => {
+    export const load_image = (url, center_lat, center_lng, width, height, transparent = false, opacity = 1.0 ) => {
 
         // project lat/lng
         const center = vertex([center_lng, center_lat]);
@@ -174,7 +174,12 @@
         const texture = new THREE.TextureLoader().load( url );
 
         // immediately use the texture for material creation
-        const material = new THREE.MeshBasicMaterial( { map: texture, transparent: transparent } );
+        let material;
+        if (transparent) {
+            material = new THREE.MeshBasicMaterial( { map: texture, alphaTest: 0.15, transparent: true, opacity: opacity } );
+        } else {
+            material = new THREE.MeshBasicMaterial( { map: texture } );
+        }
 
         // create plane
         const geometry = new THREE.PlaneGeometry( width, height );
@@ -284,7 +289,7 @@
     }
 
 
-    export const animate_to_latlng = async (lat, lng, radius) => {
+    export const animate_to_latlng = async (lat, lng, radius = MOVE_TO_RADIUS) => {
 
         // get current position
         const x0 = camera.position['x'];
