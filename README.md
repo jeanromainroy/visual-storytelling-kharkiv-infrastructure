@@ -43,6 +43,8 @@ Some testimonies were sourced from research conducated by journalists and intern
 
  - [Anyone can die at any time, Amnesty International](https://www.amnesty.org/en/latest/research/2022/06//)
 
+ - [TpyxaNews](https://twitter.com/TpyxaNews)
+
 
 **Videos of the Shelling**
 
@@ -121,6 +123,12 @@ Crimes of aggression (Article 8)
 
  - QGIS (with the GDAL command line tool)
 
+
+## TODO
+
+ - Ballistic Zoom Trajectory
+
+ - Function to identify when things are fully rendered
 
 
 ## Authors

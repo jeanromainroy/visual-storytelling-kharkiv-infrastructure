@@ -1,13 +1,15 @@
 <script>
 
     // import components
-    import Loader from './components/Loader.svelte';
     import Map from './components/Map/Map.svelte';
     import Canvas from './components/Canvas/Canvas.svelte';
     import Timeline from './components/Timeline/Timeline.svelte';
 
     // import story scripts
     import { update, load_basemaps } from './script.js';
+
+    // import incidents
+    import incidents from '../dist/incidents.json';
 
     // import libs
     import { onMount } from 'svelte';
@@ -38,7 +40,7 @@
         move_to_latlng(CENTER_LAT, CENTER_LNG, START_RADIUS);
 
         // load images
-        // load_basemaps(load_image);
+        load_basemaps(load_image);
         
         // set hide flag
         hide = false;
@@ -79,7 +81,15 @@
 
     // on UI loaded
     onMount(() => {
-        set_section_scroll_observer();     
+        set_section_scroll_observer(); 
+    
+        // DEBUG
+        const image_url = 'pictures/16.jpeg';
+        const svg_url = 'pictures/16.svg';
+
+        setTimeout(() => {
+            show_image(image_url, svg_url)
+        }, 2000)
     })
 
     
@@ -97,49 +107,46 @@
 </script>
 
 
-{#if hide}
-    <Loader/>
-{/if}
+<div class="fade-in" style="z-index: 2;">
+    <!-- 3D Map Background -->
+    <Map
+        bind:ready={map_ready} 
+        bind:controls={controls}
+        bind:load_image={load_image} bind:move_to_latlng={move_to_latlng} bind:animate_to_latlng={animate_to_latlng} bind:highlight_marker={highlight_marker_map}
+    />
 
-
-<!-- 3D Map Background -->
-<Map
-    bind:ready={map_ready} 
-    bind:controls={controls}
-    bind:load_image={load_image} bind:move_to_latlng={move_to_latlng} bind:animate_to_latlng={animate_to_latlng} bind:highlight_marker={highlight_marker_map}
-/>
+    <!-- Timeline -->
+    <Timeline bind:highlight_marker={highlight_marker_timeline}/>
+</div>
 
 
 <!-- Story Container -->
-<div id="scroll-container">
+<div id="scroll-container" style="z-index: 3;">
 
+    <!-- Zoomed Out -->
     <section data-id="1">
         <h1>BIRD</h1>
     </section>
 
 
+    <!-- Zoomed on the whole city of Kharkiv -->
     <section data-id="2">
         <h1>UP</h1>
     </section>
 
 
-    <section data-id="3">
-        <h1>Groky Amusement Park</h1>
-    </section>
-
-
-    <section data-id="4">
-        <h1>Regional State Building</h1>
-    </section>
+    <!-- Zoomed on each incident -->
+    {#each incidents['features'] as incident, index} 
+        <section data-id="{index + 3}">
+            <h1>{incident['properties']['NAME']}</h1>
+        </section>    
+    {/each}
 
 </div>
 
+
 <!-- Image Container -->
 <Canvas bind:show={show_image}/>
-
-
-<!-- Timeline -->
-<Timeline bind:highlight_marker={highlight_marker_timeline}/>
 
 
 <style>
@@ -195,12 +202,53 @@
         overflow-y: scroll;
         overflow-x: hidden;
         scroll-snap-type: y mandatory;
-        z-index: 2;
     }
 
     #scroll-container h1 {
         font-size: 64px;
         color: black;
+    }
+
+
+    /* --- Transtions --- */
+    .fade-in {
+        animation: fadeIn 1.5s;
+        -webkit-animation: fadeIn 1.5s;
+        -moz-animation: fadeIn 1.5s;
+        -o-animation: fadeIn 1.5s;
+        -ms-animation: fadeIn 1.5s;
+        opacity: 1.0;
+    }
+
+    /* --- Fade in --- */
+    @keyframes fadeIn {
+        0% {opacity:0;}
+        50% {opacity:0;}
+        100% {opacity:1;}
+    }
+
+    @-moz-keyframes fadeIn {
+        0% {opacity:0;}
+        50% {opacity:0;}
+        100% {opacity:1;}
+    }
+
+    @-webkit-keyframes fadeIn {
+        0% {opacity:0;}
+        50% {opacity:0;}
+        100% {opacity:1;}
+    }
+
+    @-o-keyframes fadeIn {
+        0% {opacity:0;}
+        50% {opacity:0;}
+        100% {opacity:1;}
+    }
+
+    @-ms-keyframes fadeIn {
+        0% {opacity:0;}
+        50% {opacity:0;}
+        100% {opacity:1;}
     }
     
 </style>

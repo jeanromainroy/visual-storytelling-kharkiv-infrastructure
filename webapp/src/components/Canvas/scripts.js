@@ -33,10 +33,10 @@ export function computeResizeFactor(canvas_width, canvas_height, image_width, im
 }
 
 
-export async function load_lines(svg_url) {
+export async function load_svg_elements(svg_url) {
 
     // init
-    let multilines = []
+    let svg_elements = []
     let success = false;
 
     // send a request for the image
@@ -51,28 +51,87 @@ export async function load_lines(svg_url) {
         xhr.overrideMimeType("image/svg+xml");
         xhr.onload = () => {
             success = true;
+
+            // grab response
+            const response = xhr.responseXML;
             
-            // extract polygons
-            const polygons = xhr.responseXML.getElementsByTagName('polygon');
+            // extract elements
+            const elements = response.querySelectorAll('polygon,polyline,path,rect');
             
             // go through
-            for (const polygon of polygons) {
+            for (const element of elements) {
 
-                // init line
-                let multiline = [];
+                // POLYGON
+                if (element.nodeName === 'polygon') {
 
-                // push points
-                for (const point of polygon['points']) {
+                    // init line
+                    let multiline = [];
+
+                    for (const point of element['points']) {
+
+                        // destructure
+                        const { x, y } = point;
+
+                        // push
+                        multiline.push( [ x, y ] )
+                    }
+
+                    // push 
+                    svg_elements.push(multiline)
+                }
+
+                // POLYLINE
+                if (element.nodeName === 'polyline') {
+
+                    // init line
+                    let multiline = [];
+
+                    for (const point of element['points']) {
+
+                        // destructure
+                        const { x, y } = point;
+
+                        // push
+                        multiline.push( [ x, y ] )
+                    }
+
+                    // push 
+                    svg_elements.push(multiline)
+                }
+
+                // RECT
+                if (element.nodeName === 'rect') {
+
+                    // init line
+                    let multiline = [];
 
                     // destructure
-                    const { x, y } = point;
+                    const x = +element.getAttribute('x');
+                    const y = +element.getAttribute('y');
+                    const width = +element.getAttribute('width');
+                    const height = +element.getAttribute('height');
 
                     // push
                     multiline.push( [ x, y ] )
+                    multiline.push( [ x + width, y ] )
+                    multiline.push( [ x + width, y + height ] )
+                    multiline.push( [ x, y + height ] )
+                    multiline.push( [ x, y ] )
+
+                    // push 
+                    svg_elements.push(multiline)
                 }
 
-                // push 
-                multilines.push(multiline)
+
+                // PATH
+                if (element.nodeName === 'path') {
+
+                    // destructure
+                    const d = element.getAttribute('d');
+
+                    // push 
+                    svg_elements.push(d)
+                }
             }
             
             resolve();
@@ -87,7 +146,7 @@ export async function load_lines(svg_url) {
     // validate
     if (!success) return null;
 
-    return multilines;
+    return svg_elements;
 }
 
 
@@ -116,35 +175,3 @@ export async function load_image(image_url){
     return asset;
 }
 
-
-export function resize_multilines(multilines, resizeFactor) {
-
-    // init
-    let multilines_resized = [];
-
-    // resize the rectangles
-    multilines.forEach(multiline => {
-
-        // init
-        let multiline_resized = [];
-
-        // go through
-        multiline.forEach(point => {
-
-            // destructure
-            const [x, y] = point;
-
-            // resize
-            const x_resized = Math.round(x * resizeFactor);
-            const y_resized = Math.round(y * resizeFactor);
-
-            // push
-            multiline_resized.push([x_resized, y_resized]);
-        })
-
-        // push
-        multilines_resized.push(multiline_resized);
-    })
-
-    return multilines_resized;
-}

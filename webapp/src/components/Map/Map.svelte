@@ -195,13 +195,59 @@
     }
 
 
-    export const load_image = (url, center_lat, center_lng, width, height, transparent = false, opacity = 1.0 ) => {
+    function cartesian_to_spherical(vect3){
+
+        // destructure
+        const { x, y, z } = vect3;
+
+        // convert
+        const r = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
+        const theta = Math.acos(z / r);
+        let phi = Math.atan(y / x);
+
+        // add cadrant
+        if (x < 0 && y >= 0) {
+            phi += Math.PI;
+        } else if (x < 0 && y < 0) {
+            phi -= Math.PI;
+        } else if (x == 0 && y > 0) {
+            phi = Math.PI / 2.0;
+        } else if (x == 0 && y < 0) {
+            phi = -Math.PI / 2.0;
+        }
+
+        return {
+            'phi': phi,
+            'theta': theta
+        }        
+    }
+
+
+    export const load_image = (url, center_lat, center_lng, min_lat, max_lat, min_lng, max_lng, transparent = false, opacity = 1.0 ) => {
 
         // project lat/lng
-        const center = vertex([center_lng, center_lat]);
+        const center_px = vertex([center_lng, center_lat]);
+        const min_lat_px = vertex([center_lng, min_lat]);
+        const max_lat_px = vertex([center_lng, max_lat]);
+        const min_lng_px = vertex([min_lng, center_lat]);
+        const max_lng_px = vertex([max_lng, center_lat]);
+
+        // PHI is lat
+        // THETA is lng
+        // spherical
+        const phiStart = Math.PI * 0.1 // cartesian_to_spherical(min_lat_px)['phi'];
+        const phiLength = Math.PI * 0.1 // Math.abs(cartesian_to_spherical(max_lat_px)['phi'] - phiStart) * 100.0;
+        const thetaStart = (Math.PI / 2.0) - ((Math.PI / 2.0) * 0.5) // cartesian_to_spherical(min_lng_px)['theta'];
+        const thetaLength = (Math.PI / 2.0) * 0.1 // Math.abs(cartesian_to_spherical(max_lng_px)['theta'] - thetaStart) * 100.0;
+        console.log(url)
+        console.log('phiStart', phiStart)
+        console.log('phiLength', phiLength)
+        console.log('thetaStart', thetaStart)
+        console.log('thetaLength', thetaLength)
+        console.log('\n\n')
 
         // normalize
-        const center_normalized = normalize(center['x'], center['y'], center['z'])
+        const center_normalized = normalize(center_px['x'], center_px['y'], center_px['z'])
 
         // load image as texture
         const texture = new THREE.TextureLoader().load( url );
@@ -209,23 +255,24 @@
         // immediately use the texture for material creation
         let material;
         if (transparent) {
-            material = new THREE.MeshBasicMaterial( { map: texture, alphaTest: 0.15, transparent: true, opacity: opacity } );
+            material = new THREE.MeshBasicMaterial( { map: texture, opacity: opacity } );
         } else {
             material = new THREE.MeshBasicMaterial( { map: texture } );
         }
 
-        // create plane
-        const geometry = new THREE.PlaneGeometry( width, height );
-        const plane = new THREE.Mesh( geometry, material );
+        // create object
+        const geometry = new THREE.SphereGeometry( EARTH_RADIUS_PX + 1.0, 128, 128, phiStart, phiLength, thetaStart, thetaLength );
+        const object = new THREE.Mesh( geometry, material );
 
         // set position
-        plane.position.set(center['x'], center['y'], center['z']);
+        // object.position.set(center['x'], center['y'], center['z']);
+        object.position.set(0, 0, 0);
 
         // rotate to face opposite of earths center
-        plane.lookAt( center_normalized['x'] * EARTH_RADIUS_PX * 2, center_normalized['y'] * EARTH_RADIUS_PX * 2, center_normalized['z'] * EARTH_RADIUS_PX * 2 );
+        // object.lookAt( center_normalized['x'] * EARTH_RADIUS_PX * 2, center_normalized['y'] * EARTH_RADIUS_PX * 2, center_normalized['z'] * EARTH_RADIUS_PX * 2 );
 
         // add to scene
-        scene.add( plane );
+        scene.add( object );
 
         // add sphere 
         // sphere.position.set(center['x'], center['y'], center['z']);
@@ -414,7 +461,7 @@
 
 </script>
 
-<canvas id="bg"></canvas>
+<canvas id="bg" class="fade-in"></canvas>
 
 <style>
 

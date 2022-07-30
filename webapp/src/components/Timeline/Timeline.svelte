@@ -96,7 +96,8 @@
                 .attr('cx', cx)
                 .attr('cy', 0)
                 .attr('r', 6)
-                .attr('fill', '#ff0000');
+                .attr('fill', '#ff0000')
+                .attr('opacity', 0.7)
         });
     })
 

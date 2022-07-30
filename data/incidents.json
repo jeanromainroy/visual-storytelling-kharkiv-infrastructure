@@ -8,7 +8,8 @@
             "properties": { 
                 "ID": 1,
                 "NAME": "Maxim Gorky Central Park for Culture and Recreation",
-                "DATE": "2022-05-03"
+                "DATE": "2022-05-03",
+                "REF": "CCTV timestamp"
             }, 
             "geometry": { 
                 "type": "MultiPoint", 
@@ -26,7 +27,9 @@
             "type": "Feature", 
             "properties": { 
                 "ID": 2,
-                "NAME": "Palace of Labor"
+                "NAME": "Palace of Labor",
+                "DATE": "2022-03-02",
+                "REF": "https://twitter.com/kyivindependent/status/1499005733077143553?lang=en"
             }, 
             "geometry": { 
                 "type": "MultiPoint", 
@@ -40,7 +43,9 @@
             "type": "Feature", 
             "properties": { 
                 "ID": 11,
-                "NAME": "Apartment Building"
+                "NAME": "Apartment Building",
+                "DATE": "2022-07-11",
+                "REF": "First hand account"
             }, 
             "geometry": { 
                 "type": "Point", 
@@ -62,7 +67,9 @@
             "type": "Feature", 
             "properties": { 
                 "ID": 15,
-                "NAME": "Faculty of Economics of Kharkiv National University"
+                "NAME": "Faculty of Economics of Kharkiv National University",
+                "DATE": "2022-03-02",
+                "REF": "https://twitter.com/DAlperovitch/status/1498914132225048576"
             }, 
             "geometry": { 
                 "type": "Point", 
@@ -73,7 +80,9 @@
             "type": "Feature", 
             "properties": { 
                 "ID": 16,
-                "NAME": "Kharkiv Regional State Administration"
+                "NAME": "Kharkiv Regional State Administration",
+                "DATE": "2022-03-01",
+                "REF": "https://www.youtube.com/watch?v=C3lKIwk-_Xc"
             }, 
             "geometry": { 
                 "type": "Point", 
@@ -84,7 +93,9 @@
             "type": "Feature", 
             "properties": { 
                 "ID": 17,
-                "NAME": "Market, Червоний"
+                "NAME": "Market, Червоний",
+                "DATE": "2022-04-20",
+                "REF": "https://twitter.com/truth_about_war/status/1517076152950607872"
             }, 
             "geometry": { 
                 "type": "Point", 
@@ -95,7 +106,9 @@
             "type": "Feature", 
             "properties": { 
                 "ID": 22,
-                "NAME": "Hospital"
+                "NAME": "Hospital",
+                "DATE": "2022-04-06",
+                "REF": "https://twitter.com/TpyxaNews/status/1511612543357394945"
             }, 
             "geometry": { 
                 "type": "Point", 
@@ -205,7 +218,9 @@
             "type": "Feature", 
             "properties": { 
                 "ID": 35,
-                "NAME": "Church of Holy Great Martyr George"
+                "NAME": "Church of Holy Great Martyr George",
+                "DATE": "2022-03-01",
+                "REF": "https://twitter.com/michaelh992/status/1501228054102052867"
             }, 
             "geometry": { 
                 "type": "Point", 

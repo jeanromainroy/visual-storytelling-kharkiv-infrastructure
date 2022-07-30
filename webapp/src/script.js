@@ -41,85 +41,57 @@ export async function update(section_id, controls, move_to_func, highlight_func)
     // log
     console.log(`Section ${section_id} as just become visible in screen`);
 
+
     if (+section_id === 1) {
 
-        // move back 
+        // zoom back
         await move_to_func(CENTER_LAT, CENTER_LNG, START_RADIUS);
 
-        // rotate
+        // turn on rotation
         controls.autoRotate = true;
-        
-    } else if (+section_id === 2) {
+    } 
+    
 
-        // rotate
+    if (+section_id === 2) {
+
+        // turn off rotation
         controls.autoRotate = false;
 
-        // move back 
-        highlight_func();
+        // clear highlighted markers
+        highlight_func(); 
+
+        // zoom to whole city of kharkiv
         await move_to_func(CENTER_LAT, CENTER_LNG, END_RADIUS);
+    } 
+    
 
-    } else if (+section_id === 3) {
+    for (let i=0 ; i<incidents['features'].length ; i++) {
 
-        // go to first incident
-        highlight_func(1)
-        await move_to_incident(1, move_to_func);
+        // compute section id
+        const _section_id = i + 3;
 
-    } else if (+section_id === 4) {
+        // destructure
+        const incident_id = incidents['features'][i]['properties']['ID']
 
-        // go to first incident
-        highlight_func(16)
-        await move_to_incident(16, move_to_func);
+        if (+section_id === _section_id) {
+
+            // highlight incident markers
+            highlight_func(incident_id);
+
+            // move to incident
+            await move_to_incident(incident_id, move_to_func);
+
+            // stop loop
+            break;
+        }
     }
+    
+    // const image_url = 'pictures/16.jpeg';
+    // const svg_url = 'pictures/16.svg';
 
-        // load images
-        // load_basemaps();
-        // load_rasters();
-
-        // move
-        // await move_to_random_incident();
-
-        // const image_url = 'pictures/16.jpeg';
-        // const svg_url = 'pictures/16.svg';
-
-        // setTimeout(() => {
-        //     show_image(image_url, svg_url)
-        // }, 2000)
-
-        // enable controls
-        // controls.enabled = true;
-
-        // zoom
-        // setTimeout(async () => {
-
-        //     controls.autoRotate = false;
-
-        //     // zoom animation
-        //     await animate_to_latlng(CENTER_LAT, CENTER_LNG, END_RADIUS);
-
-        //     setTimeout(async () => {
-
-        //         // move
-        //         await move_to_random_incident();
-
-        //         const image_url = 'pictures/16.jpeg';
-        //         const svg_url = 'pictures/16.svg';
-
-        //         show_image(image_url, svg_url)
-
-        //     }, 2000)
-
-        //     // // start random animation
-        //     // animate_random_incidents();
-            
-        // }, 6000);
-
-
-        // set
-        // controls.addEventListener( "change", event => {  
-        //     const { x, y, z } = controls.object.position;
-        //     const r = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
-        //     console.log( r ); 
-        // });
+    // setTimeout(() => {
+    //     show_image(image_url, svg_url)
+    // }, 2000)
 }
 
 
@@ -154,43 +126,68 @@ function load_rasters(){
     rasters.forEach(d => {
 
         // destructure
-        const { filename, wgs84Extent, size } = d;
-        const coordinates = wgs84Extent['coordinates'][0];
-        
+        const { filename, coordinates } = basemap;
+
         // find center point
         const center = centerPoint(coordinates);
 
-        // find width & height
-        const { width, height } = coordinates_to_width_height(coordinates);
+        // extract min/max latitudes and longitudes
+        const lngs = coordinates.map(d => d[0]);
+        const lats = coordinates.map(d => d[1]);
+        const max_lat = Math.max(...lats);
+        const min_lat = Math.min(...lats);
+        const max_lng = Math.max(...lngs);
+        const min_lng = Math.min(...lngs);
 
         // load
-        load_image(`rasters/${filename}.tif.png`, center[1], center[0], width, height);
+        load_image(`rasters/${filename}.tif.png`, center[0], center[1], min_lat, max_lat, min_lng, max_lng);
     })
 }
 
 
 export function load_basemaps(load_image){
-    basemaps.forEach(d => {
+    basemaps.forEach(basemap => {
 
         // destructure
-        const { filename, wgs84Extent, size } = d;
-        const coordinates = wgs84Extent['coordinates'][0];
-        
+        const { filename, coordinates } = basemap;
+
         // find center point
         const center = centerPoint(coordinates);
 
-        // find width & height
-        const { width, height } = coordinates_to_width_height(coordinates);
+        // extract min/max latitudes and longitudes
+        const lngs = coordinates.map(d => d[0]);
+        const lats = coordinates.map(d => d[1]);
+        const max_lat = Math.max(...lats);
+        const min_lat = Math.min(...lats);
+        const max_lng = Math.max(...lngs);
+        const min_lng = Math.min(...lngs);
 
         // set opacity
-        let opacity = 1.0;
         if (filename.includes('highway')) {
-            opacity = 0.8;
-        } else {
-            opacity = 0.3;
-        }
 
-        // load
-        load_image(`basemaps/${filename}.tif.png`, center[1], center[0], width, height, true, opacity );
+            return;
+            // set opacity
+            const opacity = 0.5;
+
+            // load
+            load_image(`basemaps/${filename}.tif.png`, center[0], center[1], min_lat, max_lat, min_lng, max_lng, true, opacity );
+
+        } else if (filename.includes('building')) {
+
+            return;
+            // set opacity
+            const opacity = 0.3;
+
+            // load
+            load_image(`basemaps/${filename}.tif.png`, center[0], center[1], min_lat, max_lat, min_lng, max_lng, true, opacity );
+
+        } else if (filename.includes('terrain')) {
+
+            // set opacity
+            const opacity = 0.25;
+
+            // load
+            load_image(`basemaps/${filename}.jpeg`, center[0], center[1], min_lat, max_lat, min_lng, max_lng, true, opacity );
+        }
     });
 }

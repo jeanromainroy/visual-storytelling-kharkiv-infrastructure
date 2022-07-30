@@ -1,7 +1,7 @@
 <script>
 
     // import scripts
-    import { computeResizeFactor, load_image, load_lines, resize_multilines } from './scripts.js';
+    import { computeResizeFactor, load_image, load_svg_elements } from './scripts.js';
 
     // import config
     import { line_opacity, line_color } from './config.js';
@@ -34,38 +34,47 @@
     }
 
 
-    function render_overlay (multilines) {
+    function render_overlay (svg_elements) {
 
         // clear Overlay
         overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
 
-        multilines.forEach((multiline, i) => {
+        svg_elements.forEach((svg_element, i) => {
         
             setTimeout(() => {
 
-                // make path
-                overlayContext.beginPath()
-                overlayContext.moveTo(multiline[0][0], multiline[0][1])
+                // MULTILINE
+                if (Array.isArray(svg_element) && svg_element.length > 1) {
+
+                    // make path
+                    overlayContext.beginPath()
+                    overlayContext.moveTo(svg_element[0][0], svg_element[0][1])
+                    
+                    // move line around
+                    for (const point of svg_element) {
+                        const [x, y] = point;
+                        overlayContext.lineTo(x, y)
+                    }
+
+                    // failed
+                    overlayContext.globalAlpha = line_opacity
+                    overlayContext.strokeStyle = line_color
+                    overlayContext.stroke()
+                    overlayContext
+                } 
                 
-                for (const point of multiline) {
+                // PATH 
+                if (typeof(svg_element) === 'string') {
 
-                    // destructure
-                    const [x, y] = point;
-
-                    // line
-                    overlayContext.lineTo(x, y)
-                }
-                overlayContext.closePath();
-
-                // failed
-                overlayContext.globalAlpha = line_opacity
-                overlayContext.strokeStyle = line_color
-                overlayContext.stroke()
+                    // convert to path
+                    const path = new Path2D(svg_element);
+                    overlayContext.fillStyle = 'black';
+                    overlayContext.fill(path);
+                }                
 
             }, i * 50)
         })
     }
-
 
 
     // function to launch the image box
@@ -79,8 +88,8 @@
         if (asset === undefined || asset === null) return;
 
         // load svg asset
-        const multilines = await load_lines(svg_url);
-        if (multilines === undefined || multilines === null) return;
+        const svg_elements = await load_svg_elements(svg_url);
+        if (svg_elements === undefined || svg_elements === null) return;
 
         // compute width, height and rotation
         const image_width = asset.width;
@@ -103,22 +112,19 @@
             const { clientWidth, clientHeight } = document.getElementById('canvas-container');
 
             // resize factor
-            const { width, height, resizeFactor } = computeResizeFactor(clientWidth, clientHeight, image_width, image_height);
+            const { width, height } = computeResizeFactor(clientWidth, clientHeight, image_width, image_height);
 
-            // draw (with the rotation)
-            imgContext.drawImage(asset, 0, 0, image_width, image_height);
-
-            // resize
+            // resize canvas
             imgCanvas.style.width = `${width}px`;
             imgCanvas.style.height = `${height}px`;
-            overlayCanvas.width = width
-            overlayCanvas.height = height
+            overlayCanvas.style.width = `${width}px`;
+            overlayCanvas.style.height = `${height}px`;
 
-            // resize 
-            const multilines_resized = resize_multilines(multilines, resizeFactor)
+            // draw image
+            imgContext.drawImage(asset, 0, 0, image_width, image_height);
 
-            // overlay the data on top of the image
-            render_overlay(multilines_resized);
+            // draw svg elements
+            render_overlay(svg_elements);
 
         }, 150);
     }
@@ -128,12 +134,10 @@
 <!-- The Image Box -->
 {#if display}
 <aside id="image_box" class="fade-in">
-    <section>
-        <div id="canvas-container">
-            <canvas id="img-canvas"></canvas>
-            <canvas id="overlay-canvas"></canvas>
-        </div>
-    </section>
+    <div id="canvas-container">
+        <canvas id="img-canvas"></canvas>
+        <canvas id="overlay-canvas"></canvas>
+    </div>
 </aside>
 {/if}
 
@@ -148,18 +152,9 @@
         right: 8vh;
         bottom: 8vh;
         border: 1px solid #999;
+        padding: 32px;
         background-color: rgb(255, 255, 255);
-        z-index: 2;
-    }
-
-    #image_box section{
-        position: absolute;
-        top: 32px;
-        left: 32px;
-        right: 32px;
-        bottom: 32px;
-        display: flex;
-        overflow: hidden;
+        z-index: 9;
     }
 
     #image_box #canvas-container {
