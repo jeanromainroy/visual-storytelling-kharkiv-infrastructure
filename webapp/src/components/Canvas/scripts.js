@@ -134,9 +134,10 @@ export async function load_svg_elements(svg_url) {
 
                 // get class name
                 const className = element.getAttribute('class');
+                console.log(element)
 
                 // get this class's style
-                const style = styles[className];
+                const style = className === null ? null : styles[className];
 
                 // init parsed element
                 let svg_element = {

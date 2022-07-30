@@ -122,25 +122,14 @@ function coordinates_to_width_height(coordinates) {
 }
 
 
-function load_rasters(){
+function load_rasters(load_image){
     rasters.forEach(d => {
 
         // destructure
         const { filename, coordinates } = basemap;
 
-        // find center point
-        const center = centerPoint(coordinates);
-
-        // extract min/max latitudes and longitudes
-        const lngs = coordinates.map(d => d[0]);
-        const lats = coordinates.map(d => d[1]);
-        const max_lat = Math.max(...lats);
-        const min_lat = Math.min(...lats);
-        const max_lng = Math.max(...lngs);
-        const min_lng = Math.min(...lngs);
-
         // load
-        load_image(`rasters/${filename}.tif.png`, center[0], center[1], min_lat, max_lat, min_lng, max_lng);
+        load_image(`rasters/${filename}.tif.png`, coordinates);
     })
 }
 
@@ -151,17 +140,6 @@ export function load_basemaps(load_image){
         // destructure
         const { filename, coordinates } = basemap;
 
-        // find center point
-        const center = centerPoint(coordinates);
-
-        // extract min/max latitudes and longitudes
-        const lngs = coordinates.map(d => d[0]);
-        const lats = coordinates.map(d => d[1]);
-        const max_lat = Math.max(...lats);
-        const min_lat = Math.min(...lats);
-        const max_lng = Math.max(...lngs);
-        const min_lng = Math.min(...lngs);
-
         // set opacity
         if (filename.includes('highway')) {
 
@@ -170,7 +148,7 @@ export function load_basemaps(load_image){
             const opacity = 0.5;
 
             // load
-            load_image(`basemaps/${filename}.tif.png`, center[0], center[1], min_lat, max_lat, min_lng, max_lng, true, opacity );
+            load_image(`basemaps/${filename}.tif.png`, coordinates, true, opacity );
 
         } else if (filename.includes('building')) {
 
@@ -179,7 +157,7 @@ export function load_basemaps(load_image){
             const opacity = 0.3;
 
             // load
-            load_image(`basemaps/${filename}.tif.png`, center[0], center[1], min_lat, max_lat, min_lng, max_lng, true, opacity );
+            load_image(`basemaps/${filename}.tif.png`, coordinates, true, opacity );
 
         } else if (filename.includes('terrain')) {
 
@@ -187,7 +165,7 @@ export function load_basemaps(load_image){
             const opacity = 0.25;
 
             // load
-            load_image(`basemaps/${filename}.jpeg`, center[0], center[1], min_lat, max_lat, min_lng, max_lng, true, opacity );
+            load_image(`basemaps/${filename}.jpeg`, coordinates, true, opacity );
         }
     });
 }

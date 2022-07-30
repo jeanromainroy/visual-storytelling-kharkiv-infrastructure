@@ -84,12 +84,12 @@
         set_section_scroll_observer(); 
     
         // DEBUG
-        const image_url = 'pictures/16.jpeg';
+        const image_url = 'pictures/16.png';
         const svg_url = 'pictures/16.svg';
 
-        setTimeout(() => {
-            show_image(image_url, svg_url)
-        }, 2000)
+        // setTimeout(() => {
+        //     show_image(image_url, svg_url)
+        // }, 2000)
     })
 
     

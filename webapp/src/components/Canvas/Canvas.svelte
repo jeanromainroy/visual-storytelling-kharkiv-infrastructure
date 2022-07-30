@@ -3,9 +3,6 @@
     // import scripts
     import { computeResizeFactor, load_image, load_svg_elements } from './scripts.js';
 
-    // import config
-    import { line_opacity, line_color } from './config.js';
-
     // ui elements
     let imgCanvas, imgContext, overlayCanvas, overlayContext;
     let canvasWidth, canvasHeight;
@@ -145,25 +142,30 @@
                     let isStroke = false;
 
                     // set styling
-                    style.forEach(styling => {
-                        
-                        // destructure
-                        const [ name, value ] = styling;
+                    if (Array.isArray(style)) {
+                        style.forEach(styling => {
+                            
+                            // destructure
+                            const [ name, value ] = styling;
 
-                        // set
-                        if (name === 'opacity') overlayContext.globalAlpha = +value;
-                        if (name === 'stroke') overlayContext.strokeStyle = value;
+                            // set
+                            if (name === 'opacity') overlayContext.globalAlpha = +value;
+                            if (name === 'stroke') overlayContext.strokeStyle = value;
 
-                        if (name === 'stroke' && value !== 'none') {
-                            isStroke = true;
-                            overlayContext.strokeStyle = value;
-                        }
+                            if (name === 'stroke' && value !== 'none') {
+                                isStroke = true;
+                                overlayContext.strokeStyle = value;
+                            }
 
-                        if (name === 'fill' && value !== 'none') {
-                            isFill = true;
-                            overlayContext.fillStyle = value;
-                        }
-                    })
+                            if (name === 'fill' && value !== 'none') {
+                                isFill = true;
+                                overlayContext.fillStyle = value;
+                            }
+                        })
+                    } else { 
+                        overlayContext.fillStyle = 'black';
+                    }
+                    
 
                     // draw
                     if (isStroke) overlayContext.stroke(path);
@@ -223,9 +225,11 @@
             imgContext.drawImage(asset, 0, 0, image_width, image_height);
 
             // draw svg elements
-            render_overlay(svg_elements);
+            setTimeout(() => {
+                render_overlay(svg_elements);
+            }, 2000);
 
-        }, 150);
+        }, 1000);
     }
 
 </script>

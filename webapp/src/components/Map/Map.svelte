@@ -11,6 +11,7 @@
     import * as THREE from 'three';
     import * as topojson from 'topojson-client';
     import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+    import { centerPoint } from "../../libs/geospatial.js";
 
     // import scripts
     import { build_earth, build_paths, build_markers, build_lines, vertex, increase_radius_of_point, normalize } from "./scripts.js";
@@ -223,7 +224,21 @@
     }
 
 
-    export const load_image = (url, center_lat, center_lng, min_lat, max_lat, min_lng, max_lng, transparent = false, opacity = 1.0 ) => {
+    function coordinates_to_sphere_parameters(coordinates) {
+
+        // find center point
+        const center = centerPoint(coordinates);
+        const center_lng = center[1];
+        const center_lat = center[0];
+
+        // extract min/max latitudes and longitudes
+        const lngs = coordinates.map(d => d[0]);
+        const lats = coordinates.map(d => d[1]);
+        const max_lat = Math.max(...lats);
+        const min_lat = Math.min(...lats);
+        const max_lng = Math.max(...lngs);
+        const min_lng = Math.min(...lngs);
+
 
         // project lat/lng
         const center_px = vertex([center_lng, center_lat]);
@@ -233,35 +248,43 @@
         const max_lng_px = vertex([max_lng, center_lat]);
 
         // PHI is lat
-        // THETA is lng
+        // THETA is lat
         // spherical
-        const phiStart = Math.PI * 0.1 // cartesian_to_spherical(min_lat_px)['phi'];
-        const phiLength = Math.PI * 0.1 // Math.abs(cartesian_to_spherical(max_lat_px)['phi'] - phiStart) * 100.0;
-        const thetaStart = (Math.PI / 2.0) - ((Math.PI / 2.0) * 0.5) // cartesian_to_spherical(min_lng_px)['theta'];
-        const thetaLength = (Math.PI / 2.0) * 0.1 // Math.abs(cartesian_to_spherical(max_lng_px)['theta'] - thetaStart) * 100.0;
-        console.log(url)
+        const phiStart = Math.PI / 2.0 -0.1 + (1.0 - (max_lat / 90.0)) * (Math.PI / 2.0); // cartesian_to_spherical(min_lat_px)['phi'];
+        const phiLength = (Math.PI / 2.0) * (( max_lng - max_lng ) / 90.0); // Math.abs(cartesian_to_spherical(max_lat_px)['phi'] - phiStart) * 100.0;
+        const thetaStart = (Math.PI / 2.0) * (max_lng / 90.0) + 0.4 // cartesian_to_spherical(min_lng_px)['theta'];
+        const thetaLength = (Math.PI / 2.0) * (( max_lat - min_lat ) / 90.0) // Math.abs(cartesian_to_spherical(max_lng_px)['theta'] - thetaStart) * 100.0;
         console.log('phiStart', phiStart)
         console.log('phiLength', phiLength)
         console.log('thetaStart', thetaStart)
         console.log('thetaLength', thetaLength)
         console.log('\n\n')
 
-        // normalize
-        const center_normalized = normalize(center_px['x'], center_px['y'], center_px['z'])
+        // // normalize
+        // const center_normalized = normalize(center_px['x'], center_px['y'], center_px['z'])
+
+        return { phiStart, phiLength, thetaStart, thetaLength };
+    }
+
+
+    export const load_image = (url, coordinates, transparent = false, opacity = 1.0 ) => {
 
         // load image as texture
         const texture = new THREE.TextureLoader().load( url );
 
+        // convert coordinates to sphere parameters
+        const { phiStart, phiLength, thetaStart, thetaLength } = coordinates_to_sphere_parameters(coordinates);
+
         // immediately use the texture for material creation
-        let material;
-        if (transparent) {
-            material = new THREE.MeshBasicMaterial( { map: texture, opacity: opacity } );
-        } else {
-            material = new THREE.MeshBasicMaterial( { map: texture } );
-        }
+        let material = new THREE.MeshBasicMaterial( { color: new THREE.Color( 0xff0000 ) } );
+        // if (transparent) {
+        //     material = new THREE.MeshBasicMaterial( { map: texture, opacity: opacity } );
+        // } else {
+        //     material = new THREE.MeshBasicMaterial( { map: texture } );
+        // }
 
         // create object
-        const geometry = new THREE.SphereGeometry( EARTH_RADIUS_PX + 1.0, 128, 128, phiStart, phiLength, thetaStart, thetaLength );
+        const geometry = new THREE.SphereGeometry( EARTH_RADIUS_PX, 128, 128, phiStart, phiLength, thetaStart, thetaLength );
         const object = new THREE.Mesh( geometry, material );
 
         // set position
