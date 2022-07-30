@@ -40,37 +40,136 @@
         overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
 
         svg_elements.forEach((svg_element, i) => {
+
+            // destructure
+            const { type, data, style } = svg_element;
         
             setTimeout(() => {
 
-                // MULTILINE
-                if (Array.isArray(svg_element) && svg_element.length > 1) {
+                // init styling to default
+                overlayContext.strokeWidth = 1.0;
+                overlayContext.globalAlpha = 1.0;
+                overlayContext.strokeStyle = 'none';
+                overlayContext.fillStyle = 'none';
+
+                if (type === 'polyline') {
 
                     // make path
                     overlayContext.beginPath()
-                    overlayContext.moveTo(svg_element[0][0], svg_element[0][1])
+                    overlayContext.moveTo(data[0][0], data[0][1])
                     
                     // move line around
-                    for (const point of svg_element) {
+                    for (const point of data) {
                         const [x, y] = point;
                         overlayContext.lineTo(x, y)
                     }
 
-                    // failed
-                    overlayContext.globalAlpha = line_opacity
-                    overlayContext.strokeStyle = line_color
-                    overlayContext.stroke()
-                    overlayContext
-                } 
+                    // init
+                    let isStroke = false;
+
+                    // set styling
+                    style.forEach(styling => {
+                        
+                        // destructure
+                        const [ name, value ] = styling;
+
+                        // set
+                        if (name === 'opacity') overlayContext.globalAlpha = +value;
+                        if (name === 'stroke') overlayContext.strokeStyle = value;
+
+                        if (name === 'stroke' && value !== 'none') {
+                            isStroke = true;
+                            overlayContext.strokeStyle = value;
+                        }
+                    })
+
+                    // draw
+                    if (isStroke) overlayContext.stroke()
+                }
+
+
+                if (type === 'polygon' || type === 'rect') {
+
+                    // make path
+                    overlayContext.beginPath()
+                    overlayContext.moveTo(data[0][0], data[0][1])
+                    
+                    // move line around
+                    for (const point of data) {
+                        const [x, y] = point;
+                        overlayContext.lineTo(x, y)
+                    }
+
+                    // close
+                    overlayContext.closePath()
+
+                    // init
+                    let isFill = false;
+                    let isStroke = false;
+
+                    // set styling
+                    style.forEach(styling => {
+                        
+                        // destructure
+                        const [ name, value ] = styling;
+
+                        // set
+                        if (name === 'opacity') overlayContext.globalAlpha = +value;
+                        if (name === 'stroke-width') overlayContext.strokeWidth = value;
+
+                        if (name === 'stroke' && value !== 'none') {
+                            isStroke = true;
+                            overlayContext.strokeStyle = value;
+                        }
+
+                        if (name === 'fill' && value !== 'none') {
+                            isFill = true;
+                            overlayContext.fillStyle = value;
+                        }
+                    })
+
+                    // draw
+                    if (isStroke) overlayContext.stroke();
+                    if (isFill) overlayContext.fill();
+                }
+
                 
                 // PATH 
-                if (typeof(svg_element) === 'string') {
+                if (type === 'path') {
 
                     // convert to path
-                    const path = new Path2D(svg_element);
-                    overlayContext.fillStyle = 'black';
-                    overlayContext.fill(path);
-                }                
+                    const path = new Path2D(data);
+
+                    // init
+                    let isFill = false;
+                    let isStroke = false;
+
+                    // set styling
+                    style.forEach(styling => {
+                        
+                        // destructure
+                        const [ name, value ] = styling;
+
+                        // set
+                        if (name === 'opacity') overlayContext.globalAlpha = +value;
+                        if (name === 'stroke') overlayContext.strokeStyle = value;
+
+                        if (name === 'stroke' && value !== 'none') {
+                            isStroke = true;
+                            overlayContext.strokeStyle = value;
+                        }
+
+                        if (name === 'fill' && value !== 'none') {
+                            isFill = true;
+                            overlayContext.fillStyle = value;
+                        }
+                    })
+
+                    // draw
+                    if (isStroke) overlayContext.stroke(path);
+                    if (isFill) overlayContext.fill(path);
+                }              
+                
 
             }, i * 50)
         })

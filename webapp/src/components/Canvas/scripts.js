@@ -1,5 +1,70 @@
 'use strict';
 
+// import config
+import { ACCEPTED_STYLING, ACCEPTED_SVG_ELEMENTS } from './config.js';
+
+
+function parse_style(style_str) {
+
+    // init dict
+    let style_dict = {};
+
+    // break at }.
+    let styles = style_str.split('}.');
+
+    // clean
+    styles = styles.map(d => d.replace('}', ''));
+
+    // split
+    styles = styles.map(d => d.split('{'))
+
+    // go through
+    styles.forEach(d => {
+
+        // destructure
+        const [classNamesStr, stylingsStr] = d
+
+        // break all affected classes
+        const classNames = classNamesStr.split(',').map(className => className.replace('.', ''))
+
+        // init
+        classNames.forEach(className => {
+            style_dict[className] = [];
+        })
+    })
+
+    // populate with styling
+    styles.forEach(d => {
+
+        // destructure
+        const [classNamesStr, stylingsStr] = d
+
+        // break all affected classes
+        const classNames = classNamesStr.split(',').map(className => className.replace('.', ''));
+
+        // break stylings
+        const stylings = stylingsStr.split(';').map(styling => styling.trim()).filter(styling => styling.length > 0);
+
+        classNames.forEach(className => {
+            for (const styling of stylings) {
+                style_dict[className].push(styling);
+            }
+        })
+    })
+
+    // final 
+    Object.keys(style_dict).forEach(className => {
+        
+        // only uniques
+        style_dict[className] = [...new Set(style_dict[className])];
+
+        // parse
+        style_dict[className] = style_dict[className].map(d => d.split(':')).filter(d => ACCEPTED_STYLING.includes(d[0]))
+    })
+
+    return style_dict;
+}
+
 
 export function computeResizeFactor(canvas_width, canvas_height, image_width, image_height) {
 
@@ -54,12 +119,31 @@ export async function load_svg_elements(svg_url) {
 
             // grab response
             const response = xhr.responseXML;
-            
-            // extract elements
+
+            // grab style
+            const styles = parse_style(response.querySelector('style').textContent);
+
+            // grab svg elements
             const elements = response.querySelectorAll('polygon,polyline,path,rect');
             
             // go through
             for (const element of elements) {
+
+                // check
+                if (!ACCEPTED_SVG_ELEMENTS.includes(element.nodeName)) continue;
+
+                // get class name
+                const className = element.getAttribute('class');
+
+                // get this class's style
+                const style = styles[className];
+
+                // init parsed element
+                let svg_element = {
+                    'type': element.nodeName,
+                    'data': null,
+                    'style': style
+                }
 
                 // POLYGON
                 if (element.nodeName === 'polygon') {
@@ -76,8 +160,8 @@ export async function load_svg_elements(svg_url) {
                         multiline.push( [ x, y ] )
                     }
 
-                    // push 
-                    svg_elements.push(multiline)
+                    // set
+                    svg_element['data'] = multiline;
                 }
 
                 // POLYLINE
@@ -95,8 +179,8 @@ export async function load_svg_elements(svg_url) {
                         multiline.push( [ x, y ] )
                     }
 
-                    // push 
-                    svg_elements.push(multiline)
+                    // set
+                    svg_element['data'] = multiline;
                 }
 
                 // RECT
@@ -118,10 +202,9 @@ export async function load_svg_elements(svg_url) {
                     multiline.push( [ x, y + height ] )
                     multiline.push( [ x, y ] )
 
-                    // push 
-                    svg_elements.push(multiline)
+                    // set
+                    svg_element['data'] = multiline;
                 }
-
 
                 // PATH
                 if (element.nodeName === 'path') {
@@ -129,9 +212,12 @@ export async function load_svg_elements(svg_url) {
                     // destructure
                     const d = element.getAttribute('d');
 
-                    // push 
-                    svg_elements.push(d)
+                    // set
+                    svg_element['data'] = d;
                 }
+
+                // push
+                svg_elements.push(svg_element)
             }
             
             resolve();
