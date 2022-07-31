@@ -20,7 +20,7 @@
     import { fov, near, far, MAX_DISTANCE, MIN_DISTANCE, EARTH_RADIUS_PX, MAT_MESH, MOVE_TO_RADIUS } from './config.js';
 
     // import geojsons
-    import topology from './assets/world-topography-110m.json';
+    import topology from './assets/world-topography-50m.json';
     import incidents from '../../../dist/incidents.json';
 
     // prepare the world's GeoJSON MultiLineString in spherical coordinates
@@ -496,7 +496,7 @@
         bottom: 0px;
         width: 100%;
         height: 100%;
-        background-color: #333;
+        background-color: #ccc;
     }
 
 </style>
