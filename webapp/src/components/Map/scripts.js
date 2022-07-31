@@ -1,13 +1,176 @@
 'use strict';
 
 // import libs
+import * as topojson from 'topojson-client';
 import * as THREE from 'three';
+import { pairs } from './libs/datamanipulation.js';
+import { vertex } from './libs/geospatial.js';
 
 // import config
-import { EARTH_RADIUS_PX, MARKER_SIZE, MAT_MESH, MAT_LINE } from './config.js';
+import { EARTH_RADIUS_PX, MARKER_SIZE, MAT_MESH } from './config.js';
 
 // import textures
 import texture_earth from './assets/texture.jpeg';
+
+// import geojsons
+import topo_countries from './assets/world-topography-50m.json';
+
+
+export function build_earth(){
+
+    // load image as texture
+    const texture = new THREE.TextureLoader().load( texture_earth );
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set( 12, 12 );
+    const material = new THREE.MeshBasicMaterial( {  map: texture } );
+
+    // build sphere geometry, slightly smaller radius for stuff above to be visible
+    const geometry = new THREE.SphereGeometry( EARTH_RADIUS_PX - 0.5, 96, 96);
+
+    // build object
+    const object = new THREE.Mesh( geometry, material );
+
+    return object;
+}
+
+
+export function build_countries(){
+
+    // prepare the world's GeoJSON MultiLineString in spherical coordinates
+    const countries = topojson.mesh(topo_countries, topo_countries['objects']['countries']);
+
+    // format as geojson feature
+    const feature = { 'type': 'MultiLineString', 'geometry': { 'coordinates': countries['coordinates'] } };
+
+    // build object from paths
+    const object = build_MultiLineString(feature);
+
+    return object;
+}
+
+
+export function build_markers(features) {
+    
+    // init ensemble object
+    let object = new THREE.Object3D();
+    
+    // go through features
+    features.forEach(feature => {
+
+        // destructure
+        const { geometry } = feature;
+
+        if ( geometry['type'] === 'MultiPoint' ) {
+            build_MultiPoint(feature).forEach(object_point => {
+                object.add(object_point);
+            })            
+        } 
+                
+        if ( geometry['type'] === 'Point' ) {
+            object.add(build_Point(feature));
+        }
+    });
+
+    return object;
+}
+
+
+export function build_LineString(feature) {
+
+    // extract coordinates
+    const points = feature['geometry']['coordinates'];
+
+    // project each point
+    const points_projected = points.map(point => vertex(point));
+
+    // pair points to create lines
+    const lines = pairs(points_projected)
+
+    // create geometry
+    const geometry = new THREE.BufferGeometry().setFromPoints( lines );
+
+    // create material
+    const material = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.4 });
+
+    // build object
+    const object_line = new THREE.LineSegments(geometry, material)
+
+    return object_line;
+}
+
+
+export function build_MultiLineString(feature) {
+
+    // init ensemble object
+    let object = new THREE.Object3D();
+
+    // go through lines
+    feature['geometry']['coordinates'].forEach(line => {
+
+        // format as geojson feature
+        const feature = { 'type': 'LineString', 'geometry': { 'coordinates': line } };
+
+        // build line object
+        const object_line = build_LineString(feature);
+
+        // add
+        object.add(object_line);
+    });  
+
+    return object;
+}
+
+
+export function build_Point(feature, radius = MARKER_SIZE) {
+
+    // destructure
+    const [lng, lat] = feature['geometry']['coordinates'];
+
+    // project lat/lng
+    const { x, y, z } = vertex([lng, lat]);
+
+    // create sphere
+    const geometry = new THREE.SphereGeometry(radius, 24, 24);
+    const material = new THREE.MeshBasicMaterial( { color: 0xFF0000, transparent: true, opacity: 0.8 } );
+    const sphere = new THREE.Mesh( geometry, material );
+
+    // set position
+    sphere.position.set(x, y, z);
+
+    // set properties
+    sphere['properties'] = feature['properties'];
+    
+    return sphere;
+}
+
+
+export function build_MultiPoint(feature) {
+
+    // init ensemble object
+    let arr = []
+
+    // go through lines
+    feature['geometry']['coordinates'].forEach(point => {
+
+        // format as geojson feature
+        const _feature = { 'type': 'Point', 'geometry': { 'coordinates': point }, 'properties': feature['properties'] };
+
+        // build line object
+        const object_point = build_Point(_feature);
+
+        // add
+        arr.push(object_point);
+    });  
+
+    return arr;
+}
+
+
+
+
+
+
 
 
 export function get_object_screen_position(object, camera){
@@ -80,140 +243,6 @@ export function rotate_on_own_axis() {
 }
 
 
-export function build_earth(){
-
-    // load image as texture
-    const texture = new THREE.TextureLoader().load( texture_earth );
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set( 12, 12 );
-
-    // outer sphere
-    const earth_geometry = new THREE.SphereGeometry( EARTH_RADIUS_PX - 0.5, 96, 96);
-    const earth_material = new THREE.MeshBasicMaterial( {  map: texture } );
-    const object_earth = new THREE.Mesh( earth_geometry, earth_material );
-
-    return object_earth;
-}
-
-
-export function build_paths(paths) {
-
-    // init ensemble object
-    let object = new THREE.Object3D();
-
-    // go through paths
-    paths.forEach(line => {
-
-        // project each point
-        const points_projected = line.map(point => vertex(point));
-
-        // pair points
-        const points_projected_paired = pairs(points_projected)
-
-        // create object
-        const geometry = new THREE.BufferGeometry().setFromPoints( points_projected_paired );
-
-        // build material
-        const material = MAT_LINE();
-
-        // add
-        object.add(new THREE.LineSegments(geometry, material));
-    });
-
-    return object;
-}
-
-
-export function build_lines(features) {
-
-    // init ensemble object
-    let object = new THREE.Object3D();
-    
-    // go through features
-    features.forEach(feature => {
-
-        // destructure
-        const type = feature['geometry']['type'];
-
-        // build material
-        const material = MAT_LINE();
-
-        if ( type === 'LineString' ) {
-
-            // extract coordinates
-            const line = feature['geometry']['coordinates'];
-
-            // project each point
-            const points_projected = line.map(point => vertex(point));
-
-            // pair points
-            const points_projected_paired = pairs(points_projected)
-
-            // create object
-            const geometry = new THREE.BufferGeometry().setFromPoints( points_projected_paired );
-
-            // add
-            object.add(new THREE.LineSegments(geometry, material));
-        } 
-
-        if ( type === 'MultiLineString' ) {
-
-            // extract coordinates
-            const lines = feature['geometry']['coordinates'];
-
-            lines.forEach(line => {
-
-                // project each point
-                const points_projected = line.map(point => vertex(point));
-
-                // pair points
-                const points_projected_paired = pairs(points_projected)
-
-                // create object
-                const geometry = new THREE.BufferGeometry().setFromPoints( points_projected_paired );
-
-                // add
-                object.add(new THREE.LineSegments(geometry, material));
-            });        
-        }
-    });
-
-    return object;
-}
-
-
-export function build_markers(features) {
-    
-    // init ensemble object
-    let object = new THREE.Object3D();
-    
-    // go through features
-    features.forEach(feature => {
-
-        // destructure
-        const { properties, geometry } = feature;
-
-        if ( geometry['type'] === 'MultiPoint' ) {
-            geometry['coordinates'].forEach(point => {
-                const [lng, lat] = point;
-                const object_marker = createMarkerFromLatLng(lat, lng, MARKER_SIZE);
-                object_marker['properties'] = properties;
-                object.add(object_marker);
-            })
-        } 
-                
-        if ( geometry['type'] === 'Point' ) {
-            const [lng, lat] = geometry['coordinates'];
-            const object_marker = createMarkerFromLatLng(lat, lng, MARKER_SIZE);
-            object_marker['properties'] = properties;
-            object.add(object_marker);
-        }
-    });
-
-    return object;
-}
-
 
 export function createMarkerFromXYZ(x, y, z, radius = 4) {
 
@@ -249,44 +278,7 @@ export function createMarkerFromLatLng(lat, lng, radius = 4) {
 }
 
 
-// Converts a point [longitude, latitude] in degrees to a THREE.Vector3.
-export function vertex(point, radius = EARTH_RADIUS_PX) {
-    
-    var lambda = point[0] * Math.PI / 180,
-        phi = point[1] * Math.PI / 180,
-        cosPhi = Math.cos(phi);
 
-    return new THREE.Vector3(
-        radius * cosPhi * Math.cos(lambda),
-        radius * cosPhi * Math.sin(lambda),
-        radius * Math.sin(phi)
-    );
-}
-
-
-export function pairs(values){
-    let mpairs = [];
-    _pairs(values, function(a, b) {
-        mpairs.push(a, b)
-    });
-    return mpairs;
-}
-
-export function _pairs(values, pairof = pair) {
-    const pairs = [];
-    let previous;
-    let first = false;
-    for (const value of values) {
-        if (first) pairs.push(pairof(previous, value));
-        previous = value;
-        first = true;
-    }
-    return pairs;
-}
-
-export function pair(a, b) {
-    return [a, b];
-}
 
 function orbit_angle(point, radius, angle_increase = 0.01) {
 

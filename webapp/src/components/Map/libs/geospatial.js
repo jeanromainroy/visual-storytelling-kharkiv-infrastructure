@@ -2,6 +2,58 @@
 
 // constants
 const EARTH_RADIUS_KM = 6371;
+import { EARTH_RADIUS_PX } from "../config";
+
+
+
+export function coordinates_to_sphere_parameters(){
+
+}
+
+
+
+function coordinates_to_width_height(coordinates) {
+
+    // extract min/max latitudes and longitudes
+    const lngs = coordinates.map(d => d[0]);
+    const lats = coordinates.map(d => d[1]);
+    const max_lat = Math.max(...lats);
+    const min_lat = Math.min(...lats);
+    const max_lng = Math.max(...lngs);
+    const min_lng = Math.min(...lngs);
+    const ave_lat = (max_lat + min_lat) / 2.0;
+    const ave_lng = (max_lng + min_lng) / 2.0;
+
+    // compute distance between extrema
+    const width_km = approx_distance_between_coordinates_km(ave_lat, min_lng, ave_lat, max_lng);
+    const height_km = approx_distance_between_coordinates_km(min_lat, ave_lng, max_lat, ave_lng);
+
+    // find width & height
+    const width_px = km_to_px(width_km, EARTH_RADIUS_PX);
+    const height_px = km_to_px(height_km, EARTH_RADIUS_PX);
+
+    return {
+        'width': width_px, 
+        'height': height_px
+    }
+}
+
+
+
+// Converts a point [longitude, latitude] in degrees to a THREE.Vector3.
+export function vertex(point, radius = EARTH_RADIUS_PX) {
+    
+    var lambda = point[0] * Math.PI / 180,
+        phi = point[1] * Math.PI / 180,
+        cosPhi = Math.cos(phi);
+
+    return {
+        'x': radius * cosPhi * Math.cos(lambda),
+        'y': radius * cosPhi * Math.sin(lambda),
+        'z': radius * Math.sin(phi)
+    }
+}
+
 
 
 /**
@@ -25,7 +77,6 @@ export function isPointInPolygon(longitude, latitude, polygon) {
 
     return inside;
 }
-
 
 
 /**
@@ -86,3 +137,5 @@ export function approx_distance_between_coordinates_km(lat1, lon1, lat2, lon2) {
 export function deg2rad(deg) {
     return deg * (Math.PI/180)
 }
+
+

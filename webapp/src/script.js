@@ -1,12 +1,7 @@
 'use strict';
 
-// import libs
-import { centerPoint, approx_distance_between_coordinates_km, km_to_px } from './libs/geospatial.js';
-
 // import Map config
-import { EARTH_RADIUS_PX } from './components/Map/config';
 import { CENTER_LNG, CENTER_LAT, START_RADIUS, END_RADIUS } from './config.js';
-
 
 // import raster info
 import rasters from '../dist/rasters/info.json';
@@ -15,25 +10,6 @@ import basemaps from '../dist/basemaps/info.json';
 // import incidents
 import incidents from '../dist/incidents.json';
 
-
-async function move_to_incident(incident_id, move_to_func) {
-
-    // select incident
-    const rand_incident = incidents['features'].filter(incident => +incident['properties']['ID'] === incident_id)[0];
-
-    // destructure
-    const geometry_type = rand_incident['geometry']['type'];
-    const coordinates = rand_incident['geometry']['coordinates'];
-    const properties = rand_incident['properties'];
-
-    // extract location
-    const location = geometry_type === 'Point' ? coordinates : coordinates[0];
-    const lng = location[0];
-    const lat = location[1];
-
-    // move to animation
-    await move_to_func(lat, lng);
-}
 
 
 export async function update(section_id, controls, move_to_func, highlight_func) {
@@ -95,30 +71,23 @@ export async function update(section_id, controls, move_to_func, highlight_func)
 }
 
 
-function coordinates_to_width_height(coordinates) {
+async function move_to_incident(incident_id, move_to_func) {
 
-    // extract min/max latitudes and longitudes
-    const lngs = coordinates.map(d => d[0]);
-    const lats = coordinates.map(d => d[1]);
-    const max_lat = Math.max(...lats);
-    const min_lat = Math.min(...lats);
-    const max_lng = Math.max(...lngs);
-    const min_lng = Math.min(...lngs);
-    const ave_lat = (max_lat + min_lat) / 2.0;
-    const ave_lng = (max_lng + min_lng) / 2.0;
+    // select incident
+    const rand_incident = incidents['features'].filter(incident => +incident['properties']['ID'] === incident_id)[0];
 
-    // compute distance between extrema
-    const width_km = approx_distance_between_coordinates_km(ave_lat, min_lng, ave_lat, max_lng);
-    const height_km = approx_distance_between_coordinates_km(min_lat, ave_lng, max_lat, ave_lng);
+    // destructure
+    const geometry_type = rand_incident['geometry']['type'];
+    const coordinates = rand_incident['geometry']['coordinates'];
+    const properties = rand_incident['properties'];
 
-    // find width & height
-    const width_px = km_to_px(width_km, EARTH_RADIUS_PX);
-    const height_px = km_to_px(height_km, EARTH_RADIUS_PX);
+    // extract location
+    const location = geometry_type === 'Point' ? coordinates : coordinates[0];
+    const lng = location[0];
+    const lat = location[1];
 
-    return {
-        'width': width_px, 
-        'height': height_px
-    }
+    // move to animation
+    await move_to_func(lat, lng);
 }
 
 

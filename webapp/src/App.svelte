@@ -20,7 +20,7 @@
     // map variables
     let map_ready;
     let controls;
-    let move_to_latlng, animate_to_latlng, highlight_marker_map, load_image;
+    let move_to_latlng, animate_to_latlng, draw_markers, highlight_marker_map, load_image;
     let highlight_marker_timeline;
 
     // canvas variables
@@ -35,6 +35,9 @@
 
         // set hide flag
         hide = true;
+
+        // draw incidents
+        draw_markers(incidents['features'])
 
         // set initial position
         move_to_latlng(CENTER_LAT, CENTER_LNG, START_RADIUS);
@@ -112,7 +115,7 @@
     <Map
         bind:ready={map_ready} 
         bind:controls={controls}
-        bind:load_image={load_image} bind:move_to_latlng={move_to_latlng} bind:animate_to_latlng={animate_to_latlng} bind:highlight_marker={highlight_marker_map}
+        bind:load_image={load_image} bind:move_to_latlng={move_to_latlng} bind:animate_to_latlng={animate_to_latlng} bind:draw_markers={draw_markers} bind:highlight_marker={highlight_marker_map}
     />
 
     <!-- Timeline -->
