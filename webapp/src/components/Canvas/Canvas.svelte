@@ -48,7 +48,7 @@
                 svg_elements.forEach((svg_element, i) => {
 
                     // destructure info
-                    const { id, opacity } = svg_infos[i];
+                    const { id, type, opacity } = svg_infos[i];
 
                     // check
                     if (!SVG_ELEMENTS.includes(id)) return;
@@ -61,6 +61,20 @@
                         svg_element.classList.add('fadein-15-10');
                     } else if (opacity === 0.7) {
                         svg_element.classList.add('fadein-15-07');
+                    }
+
+
+                    if (type === 'polygon' || type === 'polyline') {
+
+                        // get path info
+                        const path_length = svg_element.getTotalLength();
+
+                        // set
+                        svg_element.style['stroke-dasharray'] = path_length;
+                        svg_element.style['stroke-dashoffset'] = path_length;
+
+                        // animate
+                        svg_element.classList.add('draw-path');
                     }
                 })
 
@@ -206,7 +220,13 @@
         overflow: visible;
     }
 
-    /* --- Transtions --- */
+
+
+
+    /* --------------------------------------------------------------------------- */
+    /* --------------------------------------------------------------------------- */
+    /* --------------------------------------------------------------------------- */
+
     :global(.fadein-15-10) {
         animation: fadeIn10 1.5s;
     }
@@ -242,6 +262,21 @@
     @keyframes fadeIn03 {
         0% {opacity:0;}
         100% {opacity:0.3;}
+    }
+
+
+    /* --------------------------------------------------------------------------- */
+    /* --------------------------------------------------------------------------- */
+    /* --------------------------------------------------------------------------- */
+
+    :global(.draw-path) {
+        animation: dash 3s linear forwards;
+    }
+
+    @keyframes dash {
+        to {
+            stroke-dashoffset: 0;
+        }
     }
 
 </style>
