@@ -9,62 +9,72 @@ function parse_style(style_str) {
     // init dict
     let style_dict = {};
 
-    // break at }.
+    // helper functions
+    const split_classnames = (str) => str.trim().split(',').map(className => className.replace('.', '')).map(d => d.trim());
+    const split_stylings = (str) => str.trim().split(';').map(styling => styling.trim()).filter(styling => styling.length > 0).map(d => d.trim());
+    const clean_stylings = (stylings) => stylings.map(d => d.split(':').map(_d => _d.trim())).filter(d => ACCEPTED_STYLING.includes(d[0]))
+
+    // convert to array
     let styles = style_str.trim().split('}');
-
-    // clean
     styles = styles.map(d => d.trim().replace('}', '').trim());
-
-    // split
     styles = styles.map(d => d.trim().split('{')).filter(d => d.length === 2).map(d => {
-        return [d[0].trim(), d[1].trim()]
+        return [split_classnames(d[0]), split_stylings(d[1])]
     })
 
-    // go through
+    // scaffold the dict
     styles.forEach(d => {
 
         // destructure
-        const [classNamesStr, stylingsStr] = d
-
-        // break all affected classes
-        const classNames = classNamesStr.split(',').map(className => className.replace('.', '')).map(d => d.trim())
+        const classNames = d[0]
 
         // init
         classNames.forEach(className => {
-            style_dict[className] = [];
+            style_dict[className] = {
+                'style': [],
+                'fill': false,
+                'stroke': false
+            };
         })
     })
 
-    // populate with styling
+    // populate with stylings
     styles.forEach(d => {
 
         // destructure
-        const [classNamesStr, stylingsStr] = d
+        const [classNames, stylings] = d
 
-        // break all affected classes
-        const classNames = classNamesStr.split(',').map(className => className.replace('.', '')).map(d => d.trim())
-
-        // break stylings
-        const stylings = stylingsStr.split(';').map(styling => styling.trim()).filter(styling => styling.length > 0);
-
+        // push stylings
         classNames.forEach(className => {
             for (const styling of stylings) {
-                style_dict[className].push(styling.trim());
+                style_dict[className]['style'].push(styling);
             }
         })
     })
 
-    // final 
+    // parse 
     Object.keys(style_dict).forEach(className => {
         
         // only uniques
-        style_dict[className] = [...new Set(style_dict[className])];
+        style_dict[className]['style'] = [...new Set(style_dict[className]['style'])];
 
         // parse
-        style_dict[className] = style_dict[className].map(d => d.split(':').map(_d => _d.trim())).filter(d => ACCEPTED_STYLING.includes(d[0]))
-    })
+        style_dict[className]['style'] = clean_stylings(style_dict[className]['style'])
+    });
 
-    console.log(style_dict)
+
+    // set drawing flags
+    Object.keys(style_dict).forEach(className => {
+        style_dict[className]['style'].forEach(styling => {
+
+            // destructure
+            const [name, value] = styling
+
+            // check 
+            if (name === 'fill' && value !== 'none') style_dict[className]['fill'] = true;
+            if (name === 'stroke-width' || (name === 'stroke' && value !== 'none')) style_dict[className]['stroke'] = true;
+
+        })
+    });
 
     return style_dict;
 }
@@ -182,14 +192,16 @@ export async function load_svg_elements(svg_url) {
                 const className = element.getAttribute('class');
 
                 // get this class's style
-                const style = className === null ? null : styles[className];
+                const styling_dict = className === null ? null : styles[className];
 
                 // init parsed element
                 let svg_element = {
                     'id': id,
                     'type': element.nodeName,
                     'data': null,
-                    'style': style
+                    'style': styling_dict['style'],
+                    'stroke': styling_dict['stroke'],
+                    'fill': styling_dict['fill']
                 }
 
                 // POLYGON

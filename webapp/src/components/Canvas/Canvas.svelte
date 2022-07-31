@@ -1,6 +1,7 @@
 <script>
 
     // import scripts
+    import { remove_px } from './libs/datamanipulation.js';
     import { computeResizeFactor, load_image, load_json, load_svg_elements } from './scripts.js';
 
     // ui elements
@@ -9,12 +10,6 @@
 
     // variables
     let display = false;
-
-
-    function remove_px(str) {
-        if (str.endsWith('px')) return +str.slice(0, -2);
-        return str;
-    }
 
 
     function reset(){
@@ -45,129 +40,76 @@
         svg_elements.forEach((svg_element, i) => {
 
             // destructure
-            const { id, type, data, style } = svg_element;
-        
-            setTimeout(() => {
+            const { id, type, data, style, stroke, fill } = svg_element;
 
-                // init styling to default
-                overlayContext.lineWidth = 1.0;
-                overlayContext.globalAlpha = 1.0;
-                overlayContext.strokeStyle = 'none';
-                overlayContext.fillStyle = 'none';
+            // init styling to default
+            overlayContext.lineWidth = 1.0;
+            overlayContext.globalAlpha = 1.0;
+            overlayContext.strokeStyle = 'none';
+            overlayContext.fillStyle = 'none';
 
+            // set styling
+            style.forEach(styling => {
                 
-                if (type === 'polyline') {
+                // destructure
+                const [ name, value ] = styling;
 
-                    // make path
-                    overlayContext.beginPath()
-                    overlayContext.moveTo(data[0][0], data[0][1])
-                    
-                    // move line around
-                    for (const point of data) {
-                        const [x, y] = point;
-                        overlayContext.lineTo(x, y)
-                    }
+                // set
+                if (name === 'opacity') overlayContext.globalAlpha = +value;
+                if (name === 'stroke-width') overlayContext.lineWidth = remove_px(value);
+                if (name === 'stroke') overlayContext.strokeStyle = value;
+                if (name === 'fill') overlayContext.fillStyle = value;
+            })
 
-                    // set styling
-                    style.forEach(styling => {
-                        
-                        // destructure
-                        const [ name, value ] = styling;
 
-                        // set
-                        if (name === 'opacity') overlayContext.globalAlpha = +value;
-                        if (name === 'stroke') overlayContext.strokeStyle = value;
-                        if (name === 'stroke-width') overlayContext.lineWidth = remove_px(value);
-                    })
+            if (type === 'polyline') {
 
-                    // draw
-                    overlayContext.stroke()
+                // make path
+                overlayContext.beginPath()
+                overlayContext.moveTo(data[0][0], data[0][1])
+                
+                // move line around
+                for (const point of data) {
+                    const [x, y] = point;
+                    overlayContext.lineTo(x, y)
                 }
 
+                // draw
+                if (stroke) overlayContext.stroke();          
+            }
 
-                if (type === 'polygon' || type === 'rect') {
 
-                    // make path
-                    overlayContext.beginPath()
-                    overlayContext.moveTo(data[0][0], data[0][1])
-                    
-                    // move line around
-                    for (const point of data) {
-                        const [x, y] = point;
-                        overlayContext.lineTo(x, y)
-                    }
+            if (type === 'polygon' || type === 'rect') {
 
-                    // close
-                    overlayContext.closePath()
-
-                    // init
-                    let isStroke = false;
-                    let isFill = false;
-
-                    // set styling
-                    style.forEach(styling => {
-                        
-                        // destructure
-                        const [ name, value ] = styling;
-
-                        // set
-                        if (name === 'opacity') overlayContext.globalAlpha = +value;
-                        if (name === 'stroke-width') overlayContext.lineWidth = remove_px(value);
-                        if (name === 'stroke') overlayContext.strokeStyle = value;
-                        if (name === 'fill') overlayContext.fillStyle = value;
-
-                        // check 
-                        if (name === 'fill' && value !== 'none') isFill = true;
-                        if (name === 'stroke-width' || (name === 'stroke' && value !== 'none')) isStroke = true;
-                    })
-
-                    // draw
-                    if (isStroke) overlayContext.stroke();
-                    if (isFill) overlayContext.fill();
+                // make path
+                overlayContext.beginPath()
+                overlayContext.moveTo(data[0][0], data[0][1])
+                
+                // move line around
+                for (const point of data) {
+                    const [x, y] = point;
+                    overlayContext.lineTo(x, y)
                 }
 
-                
-                // PATH 
-                if (type === 'path') {
+                // close
+                overlayContext.closePath()
 
-                    // convert to path
-                    const path = new Path2D(data);
+                // draw
+                if (stroke) overlayContext.stroke();
+                if (fill) overlayContext.fill();
+            }
 
-                    // init
-                    let isStroke = false;
-                    let isFill = false;
+            
+            // PATH 
+            if (type === 'path') {
 
-                    // set styling
-                    if (Array.isArray(style)) {
-                        style.forEach(styling => {
-                            
-                            // destructure
-                            const [ name, value ] = styling;
+                // convert to path
+                const path = new Path2D(data);
 
-                            // set
-                            if (name === 'opacity') overlayContext.globalAlpha = +value;
-                            if (name === 'stroke') overlayContext.strokeStyle = value;
-                            if (name === 'stroke-width') overlayContext.lineWidth = remove_px(value);
-                            if (name === 'fill') overlayContext.fillStyle = value;
-
-                            // check 
-                            if (name === 'fill' && value !== 'none') isFill = true;
-                            if (name === 'stroke-width' || (name === 'stroke' && value !== 'none')) isStroke = true;
-                        })
-                    } else { 
-                        overlayContext.fillStyle = 'black';
-
-                        // check 
-                        isFill = true;
-                    }
-                    
-                    // draw
-                    if (isStroke) overlayContext.stroke(path);
-                    if (isFill) overlayContext.fill(path);
-                }              
-                
-
-            }, i * 50)
+                // draw
+                if (stroke) overlayContext.stroke(path);
+                if (fill) overlayContext.fill(path);
+            }  
         })
     }
 
