@@ -12,7 +12,7 @@ import incidents from '../dist/incidents.json';
 
 
 
-export async function update(section_id, controls, move_to_func, highlight_func) {
+export async function update(section_id, controls, move_to_func, highlight_func, show_canvas) {
 
     // log
     console.log(`Section ${section_id} as just become visible in screen`);
@@ -56,6 +56,14 @@ export async function update(section_id, controls, move_to_func, highlight_func)
 
             // move to incident
             await move_to_incident(incident_id, move_to_func);
+
+            // DEBUG
+            const image_url = 'incidents/16/image.png';
+            const video_url = 'incidents/16/video.mp4';
+            const objects_url = 'incidents/16/objects.svg';
+            const animation_url = 'incidents/16/animation.json';
+            show_canvas(image_url, objects_url, animation_url, video_url)
+
 
             // stop loop
             break;

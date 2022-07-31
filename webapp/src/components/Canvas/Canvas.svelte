@@ -16,6 +16,8 @@
     let display = false;
 
     // animation variables
+    let image_url = null;
+    let video_url = null;
     let svg_elements = null;
     let svg_infos = null;
     let animation = null;
@@ -143,13 +145,13 @@
     
     
     // function to launch the image box
-    export async function show(image_url, objects_url, animation_url){
+    export async function show(_image_url, objects_url, animation_url, _video_url){
 
         // set display flag
         display = false;
 
         // load image asset
-        const image_asset = await load_image(image_url);
+        const image_asset = await load_image(_image_url);
         if (image_asset === undefined || image_asset === null) return;
 
         // load svg objects asset
@@ -162,6 +164,8 @@
         if (_animation === undefined || _animation === null) return;
 
         // set
+        image_url = _image_url;
+        video_url = _video_url;
         svg_elements = _svg_elements;
         svg_infos = _svg_infos;
         animation = _animation;
@@ -245,13 +249,15 @@
 
 
 <!-- The Image Box -->
-<aside id="image_box" style="display: {display ? 'block' : 'none'}">
+<aside id="image_box" style="display: {display ? 'block' : 'none'}" class="fadein-15-10">
 
     <!-- Container #1 -->
     <div id="video-container" class="container">
+        {#if video_url !== undefined && video_url !== null}
         <video autoplay muted>
-            <source src="pictures/16/video.mp4" type="video/mp4">
+            <source src="{video_url}" type="video/mp4">
         </video>
+        {/if}
     </div>
     
     <!-- Container #2 -->

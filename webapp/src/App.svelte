@@ -85,15 +85,6 @@
     // on UI loaded
     onMount(() => {
         set_section_scroll_observer(); 
-    
-        // DEBUG
-        const image_url = 'pictures/16/image.png';
-        const objects_url = 'pictures/16/objects.svg';
-        const animation_url = 'pictures/16/animation.json';
-
-        setTimeout(() => {
-            show_canvas(image_url, objects_url, animation_url)
-        }, 2000)
     })
 
     
@@ -105,7 +96,7 @@
 
     // on section change
     $: if(displayed_section_id) {
-        update(displayed_section_id, controls, animate_to_latlng, highlight_marker);
+        update(displayed_section_id, controls, animate_to_latlng, highlight_marker, show_canvas);
     }
 
 </script>
@@ -129,13 +120,13 @@
 
     <!-- Zoomed Out -->
     <section data-id="1">
-        <h1>BIRD</h1>
+        <h1>Kharkiv</h1>
     </section>
 
 
     <!-- Zoomed on the whole city of Kharkiv -->
     <section data-id="2">
-        <h1>UP</h1>
+        <h1>Civilian Infrastucture</h1>
     </section>
 
 
