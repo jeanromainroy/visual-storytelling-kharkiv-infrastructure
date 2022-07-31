@@ -1,7 +1,6 @@
 <script>
-
+    
     // import scripts
-    import { remove_px } from './libs/datamanipulation.js';
     import { computeResizeFactor, load_image, load_json, load_svg_elements } from './scripts.js';
 
     // ui elements
@@ -32,88 +31,44 @@
     }
 
 
-    function render_overlay (svg_elements) {
+    function animate(svg_elements, svg_infos, animation) {
 
         // clear Overlay
         overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
 
-        svg_elements.forEach((svg_element, i) => {
+        // go through animation
+        animation.forEach(step => {
 
             // destructure
-            const { id, type, data, style, stroke, fill } = svg_element;
+            const { ID, ANIMATION_TYPE, START_TIME_IN_MS, END_TIME_IN_MS, SVG_ELEMENTS } = step;
 
-            // init styling to default
-            overlayContext.lineWidth = 1.0;
-            overlayContext.globalAlpha = 1.0;
-            overlayContext.strokeStyle = 'none';
-            overlayContext.fillStyle = 'none';
+            // animate
+            setTimeout(() => {
 
-            // set styling
-            style.forEach(styling => {
-                
-                // destructure
-                const [ name, value ] = styling;
+                svg_elements.forEach((svg_element, i) => {
 
-                // set
-                if (name === 'opacity') overlayContext.globalAlpha = +value;
-                if (name === 'stroke-width') overlayContext.lineWidth = remove_px(value);
-                if (name === 'stroke') overlayContext.strokeStyle = value;
-                if (name === 'fill') overlayContext.fillStyle = value;
-            })
+                    // destructure info
+                    const { id, opacity } = svg_infos[i];
 
+                    // check
+                    if (!SVG_ELEMENTS.includes(id)) return;
 
-            if (type === 'polyline') {
+                    // display
+                    svg_element.style.display = 'block';
 
-                // make path
-                overlayContext.beginPath()
-                overlayContext.moveTo(data[0][0], data[0][1])
-                
-                // move line around
-                for (const point of data) {
-                    const [x, y] = point;
-                    overlayContext.lineTo(x, y)
-                }
+                    // set animation class
+                    if (opacity === 1.0) {
+                        svg_element.classList.add('fadein-15-10');
+                    } else if (opacity === 0.7) {
+                        svg_element.classList.add('fadein-15-07');
+                    }
+                })
 
-                // draw
-                if (stroke) overlayContext.stroke();          
-            }
-
-
-            if (type === 'polygon' || type === 'rect') {
-
-                // make path
-                overlayContext.beginPath()
-                overlayContext.moveTo(data[0][0], data[0][1])
-                
-                // move line around
-                for (const point of data) {
-                    const [x, y] = point;
-                    overlayContext.lineTo(x, y)
-                }
-
-                // close
-                overlayContext.closePath()
-
-                // draw
-                if (stroke) overlayContext.stroke();
-                if (fill) overlayContext.fill();
-            }
-
-            
-            // PATH 
-            if (type === 'path') {
-
-                // convert to path
-                const path = new Path2D(data);
-
-                // draw
-                if (stroke) overlayContext.stroke(path);
-                if (fill) overlayContext.fill(path);
-            }  
+            }, START_TIME_IN_MS);
         })
     }
 
-
+    
     // function to launch the image box
     export async function show(image_url, objects_url, animation_url){
 
@@ -125,13 +80,12 @@
         if (image_asset === undefined || image_asset === null) return;
 
         // load svg objects asset
-        const svg_elements = await load_svg_elements(objects_url);
-        if (svg_elements === undefined || svg_elements === null) return;
+        const [svg_elements, svg_infos] = await load_svg_elements(objects_url);
+        if (svg_infos === undefined || svg_infos === null) return;
 
         // load animation asset
         const animation = await load_json(animation_url);
         if (animation === undefined || animation === null) return;
-
 
         // compute width, height and rotation
         const image_width = image_asset.width;
@@ -154,7 +108,7 @@
             const { clientWidth, clientHeight } = document.getElementById('canvas-container');
 
             // resize factor
-            const { width, height } = computeResizeFactor(clientWidth, clientHeight, image_width, image_height);
+            const { width, height, resizeFactor } = computeResizeFactor(clientWidth, clientHeight, image_width, image_height);
 
             // resize canvas
             imgCanvas.style.width = `${width}px`;
@@ -165,24 +119,56 @@
             // draw image
             imgContext.drawImage(image_asset, 0, 0, image_width, image_height);
 
-            // draw svg elements
-            setTimeout(() => {
-                render_overlay(svg_elements);
-            }, 2000);
+            // get svg div
+            const svg_div = document.getElementById('svg-div');
 
-        }, 1000);
+            // resize svg div
+            svg_div.style.width = `${image_width}px`;
+            svg_div.style.height = `${image_height}px`;
+
+            // draw svg elements
+            svg_elements.forEach((svg_element, i) => {
+
+                // destructure processed element
+                const { id, type, data, style, fill, stroke } = svg_infos[i];
+
+                // set styling
+                style.forEach(styling => {
+
+                    // destructure
+                    const [ name, value ] = styling;
+
+                    // update
+                    svg_element.style[name] = value;
+                })
+
+                // hide
+                svg_element.style.display = 'none';
+
+                // append raw element
+                svg_div.appendChild(svg_element);
+            })
+
+            // resize svg div
+            svg_div.setAttribute('transform', `scale(${resizeFactor})`);
+
+            // animate objects
+            animate(svg_elements, svg_infos, animation);
+
+        }, 150);
     }
 
 </script>
 
 <!-- The Image Box -->
 {#if display}
-<aside id="image_box" class="fade-in">
-    <div id="canvas-container">
-        <canvas id="img-canvas"></canvas>
-        <canvas id="overlay-canvas"></canvas>
-    </div>
-</aside>
+    <aside id="image_box" class="fade-in">
+        <div id="canvas-container">
+            <canvas id="img-canvas"></canvas>
+            <canvas id="overlay-canvas"></canvas>
+            <svg id="svg-div"></svg>
+        </div>
+    </aside>
 {/if}
 
 
@@ -211,129 +197,51 @@
 
     #image_box canvas {
         position: absolute;
+        width: 100%;
+        height: 100%;
     }
 
-    #img-canvas {
-        opacity: 0.5;
+    #image_box #svg-div {
+        position: absolute;
+        overflow: visible;
     }
-
 
     /* --- Transtions --- */
-    .fade-in {
-        animation: fadeIn 1.5s;
-        -webkit-animation: fadeIn 1.5s;
-        -moz-animation: fadeIn 1.5s;
-        -o-animation: fadeIn 1.5s;
-        -ms-animation: fadeIn 1.5s;
-        opacity: 1.0;
+    :global(.fadein-15-10) {
+        animation: fadeIn10 1.5s;
     }
 
-    .fade-in-long {
-        animation: fadeIn 3.0s;
-        -webkit-animation: fadeIn 3.0s;
-        -moz-animation: fadeIn 3.0s;
-        -o-animation: fadeIn 3.0s;
-        -ms-animation: fadeIn 3.0s;
-        opacity: 1.0;
+    :global(.fadein-15-07) {
+        animation: fadeIn07 1.5s;
     }
 
-    .fade-out {
-        animation: fadeOut 0.5s;
-        -webkit-animation: fadeOut 0.5s;
-        -moz-animation: fadeOut 0.5s;
-        -o-animation: fadeOut 0.5s;
-        -ms-animation: fadeOut 0.5s;
-        opacity: 0.0;
+    :global(.fadein-15-05) {
+        animation: fadeIn05 1.5s;
     }
 
-    .footer-up {
-        animation: moveUp 0.5s;
-        -webkit-animation: moveUp 0.5s;
-        -moz-animation: moveUp 0.5s;
-        -o-animation: moveUp 0.5s;
-        -ms-animation: moveUp 0.5s;
-        height: var(--footer-height);
+    :global(.fadein-15-03) {
+        animation: fadeIn03 1.5s;
     }
-
 
     /* --- Fade in --- */
-    @keyframes fadeIn {
+    @keyframes fadeIn10 {
         0% {opacity:0;}
         100% {opacity:1;}
     }
 
-    @-moz-keyframes fadeIn {
+    @keyframes fadeIn07 {
         0% {opacity:0;}
-        100% {opacity:1;}
+        100% {opacity:0.7;}
     }
 
-    @-webkit-keyframes fadeIn {
+    @keyframes fadeIn05 {
         0% {opacity:0;}
-        100% {opacity:1;}
+        100% {opacity:0.5;}
     }
 
-    @-o-keyframes fadeIn {
+    @keyframes fadeIn03 {
         0% {opacity:0;}
-        100% {opacity:1;}
-    }
-
-    @-ms-keyframes fadeIn {
-        0% {opacity:0;}
-        100% {opacity:1;}
-    }
-
-
-    /* --- Move Up --- */
-    @keyframes moveUp {
-        0% {height: 0px}
-        100% {height: var(--footer-height);}
-    }
-
-    @-moz-keyframes moveUp {
-        0% {height: 0px}
-        100% {height: var(--footer-height);}
-    }
-
-    @-webkit-keyframes moveUp {
-        0% {height: 0px}
-        100% {height: var(--footer-height);}
-    }
-
-    @-o-keyframes moveUp {
-        0% {height: 0px}
-        100% {height: var(--footer-height);}
-    }
-
-    @-ms-keyframes moveUp {
-        0% {height: 0px}
-        100% {height: var(--footer-height);}
-    }
-
-
-    /* --- Fade Out --- */
-    @keyframes fadeOut {
-        0% {opacity:1;}
-        100% {opacity:0;}
-    }
-
-    @-moz-keyframes fadeOut {
-        0% {opacity:1;}
-        100% {opacity:0;}
-    }
-
-    @-webkit-keyframes fadeOut {
-        0% {opacity:1;}
-        100% {opacity:0;}
-    }
-
-    @-o-keyframes fadeOut {
-        0% {opacity:1;}
-        100% {opacity:0;}
-    }
-
-    @-ms-keyframes fadeOut {
-        0% {opacity:1;}
-        100% {opacity:0;}
+        100% {opacity:0.3;}
     }
 
 </style>

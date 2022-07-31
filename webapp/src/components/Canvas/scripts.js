@@ -32,7 +32,8 @@ function parse_style(style_str) {
             style_dict[className] = {
                 'style': [],
                 'fill': false,
-                'stroke': false
+                'stroke': false,
+                'opacity': 1.0
             };
         })
     })
@@ -73,11 +74,146 @@ function parse_style(style_str) {
             if (name === 'fill' && value !== 'none') style_dict[className]['fill'] = true;
             if (name === 'stroke-width' || (name === 'stroke' && value !== 'none')) style_dict[className]['stroke'] = true;
 
+            // set opacity
+            if (name === 'opacity') style_dict[className]['opacity'] = +value;
         })
     });
 
     return style_dict;
 }
+
+
+function parse_svg(response){
+
+    // init
+    let raw_elements = [];
+    let svg_elements = [];
+
+    // grab style
+    const styles = parse_style(response.querySelector('style').textContent);
+
+    // grab svg elements
+    const elements = response.querySelectorAll('polygon,polyline,path,rect');
+    
+    // go through
+    for (const element of elements) {
+
+        // check
+        if (!ACCEPTED_SVG_ELEMENTS.includes(element.nodeName)) continue;
+
+        // get id
+        let id = element.getAttribute('id')
+
+        // IF NO ID, check parent
+        if (id === undefined || id === null) {
+            const id_parent = element.parentNode.getAttribute('id');
+            if (id_parent === undefined || id_parent === null) {
+                console.error(`Cannot find id of `, element);
+                continue;
+            }
+            id = id_parent;
+        }
+
+        // set element
+        element.setAttribute('id', id);
+
+        // get class name
+        const className = element.getAttribute('class');
+
+        // get this class's style
+        const styling_dict = className === null ? null : styles[className];
+
+        // init parsed element
+        let svg_element = {
+            'id': id,
+            'type': element.nodeName,
+            'data': null,
+            'style': styling_dict['style'],
+            'stroke': styling_dict['stroke'],
+            'fill': styling_dict['fill'],
+            'opacity': styling_dict['opacity']
+        }
+
+        // POLYGON
+        if (element.nodeName === 'polygon') {
+
+            // init line
+            let multiline = [];
+
+            for (const point of element['points']) {
+
+                // destructure
+                const { x, y } = point;
+
+                // push
+                multiline.push( [ x, y ] )
+            }
+
+            // set
+            svg_element['data'] = multiline;
+        }
+
+        // POLYLINE
+        if (element.nodeName === 'polyline') {
+
+            // init line
+            let multiline = [];
+
+            for (const point of element['points']) {
+
+                // destructure
+                const { x, y } = point;
+
+                // push
+                multiline.push( [ x, y ] )
+            }
+
+            // set
+            svg_element['data'] = multiline;
+        }
+
+        // RECT
+        if (element.nodeName === 'rect') {
+
+            // init line
+            let multiline = [];
+
+            // destructure
+            const x = +element.getAttribute('x');
+            const y = +element.getAttribute('y');
+            const width = +element.getAttribute('width');
+            const height = +element.getAttribute('height');
+
+            // push
+            multiline.push( [ x, y ] )
+            multiline.push( [ x + width, y ] )
+            multiline.push( [ x + width, y + height ] )
+            multiline.push( [ x, y + height ] )
+            multiline.push( [ x, y ] )
+
+            // set
+            svg_element['data'] = multiline;
+        }
+
+        // PATH
+        if (element.nodeName === 'path') {
+
+            // destructure
+            const d = element.getAttribute('d');
+
+            // set
+            svg_element['data'] = d;
+        }
+
+        // push
+        raw_elements.push(element);
+        svg_elements.push(svg_element)
+    }
+
+    return [raw_elements, svg_elements]
+}
+
+
 
 
 export function computeResizeFactor(canvas_width, canvas_height, image_width, image_height) {
@@ -115,7 +251,7 @@ export function computeResizeFactor(canvas_width, canvas_height, image_width, im
 export async function load_json(url) {
 
     // init
-    let result = null;
+    let response = null;
     let success = false;
 
     // send a request for the image
@@ -123,17 +259,19 @@ export async function load_json(url) {
 
         // init xml requests
         const xhr = new XMLHttpRequest();
+
+        // set MIME type
+        xhr.overrideMimeType("application/json");
+
+        // configure request
         xhr.open("GET", url, false);
 
-        // Following line is just to be on the safe side;
-        // not needed if your server delivers SVG with correct MIME type
+        // on response
         xhr.onload = () => {
             success = true;
 
-            console.log(xhr)
-
-            // set result
-            result = xhr.response;
+            // parse response
+            response = JSON.parse(xhr.responseText);
             
             resolve();
         }
@@ -141,20 +279,22 @@ export async function load_json(url) {
             resolve();
         }
 
-        xhr.send("");
+        // send request
+        xhr.send(null);
     })
 
     // validate
     if (!success) return null;
 
-    return result;
+    return response;
 }
+
 
 
 export async function load_svg_elements(svg_url) {
 
     // init
-    let svg_elements = []
+    let response = null;
     let success = false;
 
     // send a request for the image
@@ -162,122 +302,22 @@ export async function load_svg_elements(svg_url) {
 
         // init xml requests
         const xhr = new XMLHttpRequest();
+
+        // set MIME type
+        xhr.overrideMimeType("image/svg+xml");
+
+        // configure request
         xhr.open("GET", svg_url, false);
 
-        // Following line is just to be on the safe side;
-        // not needed if your server delivers SVG with correct MIME type
-        xhr.overrideMimeType("image/svg+xml");
+        // on response
         xhr.onload = () => {
             success = true;
 
             // grab response
-            const response = xhr.responseXML;
+            const _response = xhr.responseXML;
 
-            // grab style
-            const styles = parse_style(response.querySelector('style').textContent);
-
-            // grab svg elements
-            const elements = response.querySelectorAll('polygon,polyline,path,rect');
-            
-            // go through
-            for (const element of elements) {
-
-                // check
-                if (!ACCEPTED_SVG_ELEMENTS.includes(element.nodeName)) continue;
-
-                // get id
-                const id = element.getAttribute('id')
-
-                // get class name
-                const className = element.getAttribute('class');
-
-                // get this class's style
-                const styling_dict = className === null ? null : styles[className];
-
-                // init parsed element
-                let svg_element = {
-                    'id': id,
-                    'type': element.nodeName,
-                    'data': null,
-                    'style': styling_dict['style'],
-                    'stroke': styling_dict['stroke'],
-                    'fill': styling_dict['fill']
-                }
-
-                // POLYGON
-                if (element.nodeName === 'polygon') {
-
-                    // init line
-                    let multiline = [];
-
-                    for (const point of element['points']) {
-
-                        // destructure
-                        const { x, y } = point;
-
-                        // push
-                        multiline.push( [ x, y ] )
-                    }
-
-                    // set
-                    svg_element['data'] = multiline;
-                }
-
-                // POLYLINE
-                if (element.nodeName === 'polyline') {
-
-                    // init line
-                    let multiline = [];
-
-                    for (const point of element['points']) {
-
-                        // destructure
-                        const { x, y } = point;
-
-                        // push
-                        multiline.push( [ x, y ] )
-                    }
-
-                    // set
-                    svg_element['data'] = multiline;
-                }
-
-                // RECT
-                if (element.nodeName === 'rect') {
-
-                    // init line
-                    let multiline = [];
-
-                    // destructure
-                    const x = +element.getAttribute('x');
-                    const y = +element.getAttribute('y');
-                    const width = +element.getAttribute('width');
-                    const height = +element.getAttribute('height');
-
-                    // push
-                    multiline.push( [ x, y ] )
-                    multiline.push( [ x + width, y ] )
-                    multiline.push( [ x + width, y + height ] )
-                    multiline.push( [ x, y + height ] )
-                    multiline.push( [ x, y ] )
-
-                    // set
-                    svg_element['data'] = multiline;
-                }
-
-                // PATH
-                if (element.nodeName === 'path') {
-
-                    // destructure
-                    const d = element.getAttribute('d');
-
-                    // set
-                    svg_element['data'] = d;
-                }
-
-                // push
-                svg_elements.push(svg_element)
-            }
+            // parse response
+            response = parse_svg(_response);
             
             resolve();
         }
@@ -285,13 +325,14 @@ export async function load_svg_elements(svg_url) {
             resolve();
         }
 
-        xhr.send("");
+        // send request
+        xhr.send(null);
     })
 
     // validate
     if (!success) return null;
 
-    return svg_elements;
+    return response;
 }
 
 
