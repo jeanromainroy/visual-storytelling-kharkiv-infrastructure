@@ -1,5 +1,8 @@
 <script>
     
+    // import libs
+    import { onMount } from 'svelte';
+
     // import scripts
     import { computeResizeFactor, load_image, load_json, load_svg_elements } from './scripts.js';
 
@@ -8,6 +11,7 @@
     let canvasWidth, canvasHeight;
 
     // variables
+    let displayed_canvas = false;
     let display = false;
 
 
@@ -40,7 +44,7 @@
         animation.forEach(step => {
 
             // destructure
-            const { ID, ANIMATION_TYPE, START_TIME_IN_MS, END_TIME_IN_MS, SVG_ELEMENTS } = step;
+            const { ID, START_TIME_IN_MS, SVG_ELEMENTS } = step;
 
             // animate
             setTimeout(() => {
@@ -64,7 +68,7 @@
                     }
 
 
-                    if (type === 'polygon' || type === 'polyline') {
+                    if (type === 'polygon' || type === 'polyline' || (type === 'path' && id[0] !== 't' && id[0] !== 's')) {
 
                         // get path info
                         const path_length = svg_element.getTotalLength();
@@ -82,6 +86,33 @@
         })
     }
 
+
+    function set_section_scroll_observer() {
+
+        // grab sections
+        const section = document.querySelector("#canvas-container");
+        console.log(section)
+
+        // init observer
+        const observer = new IntersectionObserver(function(entries) {
+            // isIntersecting is true when element and viewport are overlapping
+            // isIntersecting is false when element and viewport don't overlap
+
+            // if overlap, set as displayed section
+            displayed_canvas = entries[0].isIntersecting;
+
+        }, { threshold: [0.5] });
+
+        // set target
+        observer.observe(section);  
+    }
+
+
+    // on section change
+    $: if(displayed_canvas) {
+        console.log('salut');
+    }
+    
     
     // function to launch the image box
     export async function show(image_url, objects_url, animation_url){
@@ -172,18 +203,39 @@
         }, 150);
     }
 
+
+    // on UI loaded
+    onMount(() => {
+        set_section_scroll_observer(); 
+    });
+
+
 </script>
 
+
 <!-- The Image Box -->
-{#if display}
-    <aside id="image_box" class="fade-in">
-        <div id="canvas-container">
-            <canvas id="img-canvas"></canvas>
-            <canvas id="overlay-canvas"></canvas>
-            <svg id="svg-div"></svg>
-        </div>
-    </aside>
-{/if}
+<aside id="image_box" style="display: {display ? 'block' : 'none'}">
+
+    <!-- Container #1 -->
+    <div id="video-container" class="container">
+        <video autoplay muted>
+            <source src="pictures/16/video.mp4" type="video/mp4">
+        </video>
+    </div>
+    
+    <!-- Container #2 -->
+    <div id="canvas-container" class="container">
+        <canvas id="img-canvas"></canvas>
+        <canvas id="overlay-canvas"></canvas>
+        <svg id="svg-div"></svg>
+    </div>
+
+
+    <!-- Container #3 -->
+    <div id="after-container" class="container">
+        
+    </div>
+</aside>
 
 
 <style>
@@ -199,9 +251,10 @@
         padding: 32px;
         background-color: rgb(255, 255, 255);
         z-index: 9;
+        overflow-y: scroll;
     }
 
-    #image_box #canvas-container {
+    #image_box .container {
         display: flex;
         justify-content: center;
         align-items: center;
@@ -220,7 +273,10 @@
         overflow: visible;
     }
 
-
+    video {
+        width: 70vw;
+        height: auto;
+    }
 
 
     /* --------------------------------------------------------------------------- */

@@ -9,28 +9,23 @@ The structure of the animation scheduling looks as follows,
     [
         {
             "ID": 1,
-            "ANIMATION_TYPE": "FADE-IN"
-            "START_TIME_IN_MS": 500,
-            "END_TIME_IN_MS": 2000,
+            "START_TIME_IN_MS": 1000,
             "SVG_ELEMENTS": [
-                "f-0.1", 
-                "f-0.2", 
-                "f-0.3", 
-                "f-0.4", 
-                ...
+                "o-1"
             ]
         },
         {
             "ID": 2,
-            "ANIMATION_TYPE": "FADE-OUT"
-            "START_TIME_IN_MS": 1500,
-            "END_TIME_IN_MS": 3500,
+            "START_TIME_IN_MS": 3500,
             "SVG_ELEMENTS": [
-                "r-0.1", 
-                "r-0.2", 
-                "r-0.3", 
-                "r-0.4", 
-                ...
+                "w-1" 
+            ]
+        },
+        {
+            "ID": 3,
+            "START_TIME_IN_MS": 4500,
+            "SVG_ELEMENTS": [
+                "c-1"
             ]
         },
         ...
