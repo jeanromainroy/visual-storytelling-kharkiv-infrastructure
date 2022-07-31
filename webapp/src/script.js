@@ -61,13 +61,6 @@ export async function update(section_id, controls, move_to_func, highlight_func)
             break;
         }
     }
-    
-    // const image_url = 'pictures/16.jpeg';
-    // const svg_url = 'pictures/16.svg';
-
-    // setTimeout(() => {
-    //     show_image(image_url, svg_url)
-    // }, 2000)
 }
 
 

@@ -10,13 +10,15 @@ function parse_style(style_str) {
     let style_dict = {};
 
     // break at }.
-    let styles = style_str.split('}.');
+    let styles = style_str.trim().split('}');
 
     // clean
-    styles = styles.map(d => d.replace('}', ''));
+    styles = styles.map(d => d.trim().replace('}', '').trim());
 
     // split
-    styles = styles.map(d => d.split('{'))
+    styles = styles.map(d => d.trim().split('{')).filter(d => d.length === 2).map(d => {
+        return [d[0].trim(), d[1].trim()]
+    })
 
     // go through
     styles.forEach(d => {
@@ -25,7 +27,7 @@ function parse_style(style_str) {
         const [classNamesStr, stylingsStr] = d
 
         // break all affected classes
-        const classNames = classNamesStr.split(',').map(className => className.replace('.', ''))
+        const classNames = classNamesStr.split(',').map(className => className.replace('.', '')).map(d => d.trim())
 
         // init
         classNames.forEach(className => {
@@ -40,14 +42,14 @@ function parse_style(style_str) {
         const [classNamesStr, stylingsStr] = d
 
         // break all affected classes
-        const classNames = classNamesStr.split(',').map(className => className.replace('.', ''));
+        const classNames = classNamesStr.split(',').map(className => className.replace('.', '')).map(d => d.trim())
 
         // break stylings
         const stylings = stylingsStr.split(';').map(styling => styling.trim()).filter(styling => styling.length > 0);
 
         classNames.forEach(className => {
             for (const styling of stylings) {
-                style_dict[className].push(styling);
+                style_dict[className].push(styling.trim());
             }
         })
     })
@@ -59,8 +61,10 @@ function parse_style(style_str) {
         style_dict[className] = [...new Set(style_dict[className])];
 
         // parse
-        style_dict[className] = style_dict[className].map(d => d.split(':')).filter(d => ACCEPTED_STYLING.includes(d[0]))
+        style_dict[className] = style_dict[className].map(d => d.split(':').map(_d => _d.trim())).filter(d => ACCEPTED_STYLING.includes(d[0]))
     })
+
+    console.log(style_dict)
 
     return style_dict;
 }
@@ -98,6 +102,45 @@ export function computeResizeFactor(canvas_width, canvas_height, image_width, im
 }
 
 
+export async function load_json(url) {
+
+    // init
+    let result = null;
+    let success = false;
+
+    // send a request for the image
+    await new Promise(function (resolve, reject) {
+
+        // init xml requests
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", url, false);
+
+        // Following line is just to be on the safe side;
+        // not needed if your server delivers SVG with correct MIME type
+        xhr.onload = () => {
+            success = true;
+
+            console.log(xhr)
+
+            // set result
+            result = xhr.response;
+            
+            resolve();
+        }
+        xhr.onerror = () => {
+            resolve();
+        }
+
+        xhr.send("");
+    })
+
+    // validate
+    if (!success) return null;
+
+    return result;
+}
+
+
 export async function load_svg_elements(svg_url) {
 
     // init
@@ -132,15 +175,18 @@ export async function load_svg_elements(svg_url) {
                 // check
                 if (!ACCEPTED_SVG_ELEMENTS.includes(element.nodeName)) continue;
 
+                // get id
+                const id = element.getAttribute('id')
+
                 // get class name
                 const className = element.getAttribute('class');
-                console.log(element)
 
                 // get this class's style
                 const style = className === null ? null : styles[className];
 
                 // init parsed element
                 let svg_element = {
+                    'id': id,
                     'type': element.nodeName,
                     'data': null,
                     'style': style

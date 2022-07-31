@@ -1,7 +1,7 @@
 <script>
 
     // import scripts
-    import { computeResizeFactor, load_image, load_svg_elements } from './scripts.js';
+    import { computeResizeFactor, load_image, load_json, load_svg_elements } from './scripts.js';
 
     // ui elements
     let imgCanvas, imgContext, overlayCanvas, overlayContext;
@@ -9,6 +9,12 @@
 
     // variables
     let display = false;
+
+
+    function remove_px(str) {
+        if (str.endsWith('px')) return +str.slice(0, -2);
+        return str;
+    }
 
 
     function reset(){
@@ -39,16 +45,17 @@
         svg_elements.forEach((svg_element, i) => {
 
             // destructure
-            const { type, data, style } = svg_element;
+            const { id, type, data, style } = svg_element;
         
             setTimeout(() => {
 
                 // init styling to default
-                overlayContext.strokeWidth = 1.0;
+                overlayContext.lineWidth = 1.0;
                 overlayContext.globalAlpha = 1.0;
                 overlayContext.strokeStyle = 'none';
                 overlayContext.fillStyle = 'none';
 
+                
                 if (type === 'polyline') {
 
                     // make path
@@ -61,9 +68,6 @@
                         overlayContext.lineTo(x, y)
                     }
 
-                    // init
-                    let isStroke = false;
-
                     // set styling
                     style.forEach(styling => {
                         
@@ -73,15 +77,11 @@
                         // set
                         if (name === 'opacity') overlayContext.globalAlpha = +value;
                         if (name === 'stroke') overlayContext.strokeStyle = value;
-
-                        if (name === 'stroke' && value !== 'none') {
-                            isStroke = true;
-                            overlayContext.strokeStyle = value;
-                        }
+                        if (name === 'stroke-width') overlayContext.lineWidth = remove_px(value);
                     })
 
                     // draw
-                    if (isStroke) overlayContext.stroke()
+                    overlayContext.stroke()
                 }
 
 
@@ -101,8 +101,8 @@
                     overlayContext.closePath()
 
                     // init
-                    let isFill = false;
                     let isStroke = false;
+                    let isFill = false;
 
                     // set styling
                     style.forEach(styling => {
@@ -112,17 +112,13 @@
 
                         // set
                         if (name === 'opacity') overlayContext.globalAlpha = +value;
-                        if (name === 'stroke-width') overlayContext.strokeWidth = value;
+                        if (name === 'stroke-width') overlayContext.lineWidth = remove_px(value);
+                        if (name === 'stroke') overlayContext.strokeStyle = value;
+                        if (name === 'fill') overlayContext.fillStyle = value;
 
-                        if (name === 'stroke' && value !== 'none') {
-                            isStroke = true;
-                            overlayContext.strokeStyle = value;
-                        }
-
-                        if (name === 'fill' && value !== 'none') {
-                            isFill = true;
-                            overlayContext.fillStyle = value;
-                        }
+                        // check 
+                        if (name === 'fill' && value !== 'none') isFill = true;
+                        if (name === 'stroke-width' || (name === 'stroke' && value !== 'none')) isStroke = true;
                     })
 
                     // draw
@@ -138,8 +134,8 @@
                     const path = new Path2D(data);
 
                     // init
-                    let isFill = false;
                     let isStroke = false;
+                    let isFill = false;
 
                     // set styling
                     if (Array.isArray(style)) {
@@ -151,22 +147,20 @@
                             // set
                             if (name === 'opacity') overlayContext.globalAlpha = +value;
                             if (name === 'stroke') overlayContext.strokeStyle = value;
+                            if (name === 'stroke-width') overlayContext.lineWidth = remove_px(value);
+                            if (name === 'fill') overlayContext.fillStyle = value;
 
-                            if (name === 'stroke' && value !== 'none') {
-                                isStroke = true;
-                                overlayContext.strokeStyle = value;
-                            }
-
-                            if (name === 'fill' && value !== 'none') {
-                                isFill = true;
-                                overlayContext.fillStyle = value;
-                            }
+                            // check 
+                            if (name === 'fill' && value !== 'none') isFill = true;
+                            if (name === 'stroke-width' || (name === 'stroke' && value !== 'none')) isStroke = true;
                         })
                     } else { 
                         overlayContext.fillStyle = 'black';
+
+                        // check 
+                        isFill = true;
                     }
                     
-
                     // draw
                     if (isStroke) overlayContext.stroke(path);
                     if (isFill) overlayContext.fill(path);
@@ -179,22 +173,27 @@
 
 
     // function to launch the image box
-    export async function show(image_url, svg_url){
+    export async function show(image_url, objects_url, animation_url){
 
         // set display flag
         display = false;
 
         // load image asset
-        const asset = await load_image(image_url);
-        if (asset === undefined || asset === null) return;
+        const image_asset = await load_image(image_url);
+        if (image_asset === undefined || image_asset === null) return;
 
-        // load svg asset
-        const svg_elements = await load_svg_elements(svg_url);
+        // load svg objects asset
+        const svg_elements = await load_svg_elements(objects_url);
         if (svg_elements === undefined || svg_elements === null) return;
 
+        // load animation asset
+        const animation = await load_json(animation_url);
+        if (animation === undefined || animation === null) return;
+
+
         // compute width, height and rotation
-        const image_width = asset.width;
-        const image_height = asset.height;
+        const image_width = image_asset.width;
+        const image_height = image_asset.height;
 
         // set canvas width and height
         canvasWidth = image_width;
@@ -222,7 +221,7 @@
             overlayCanvas.style.height = `${height}px`;
 
             // draw image
-            imgContext.drawImage(asset, 0, 0, image_width, image_height);
+            imgContext.drawImage(image_asset, 0, 0, image_width, image_height);
 
             // draw svg elements
             setTimeout(() => {

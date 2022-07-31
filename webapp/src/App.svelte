@@ -24,7 +24,7 @@
     let highlight_marker_timeline;
 
     // canvas variables
-    let show_image;
+    let show_canvas;
 
     // app variables
     let hide = true;
@@ -87,12 +87,13 @@
         set_section_scroll_observer(); 
     
         // DEBUG
-        const image_url = 'pictures/16.png';
-        const svg_url = 'pictures/16.svg';
+        const image_url = 'pictures/16/image.png';
+        const objects_url = 'pictures/16/objects.svg';
+        const animation_url = 'pictures/16/animation.json';
 
-        // setTimeout(() => {
-        //     show_image(image_url, svg_url)
-        // }, 2000)
+        setTimeout(() => {
+            show_canvas(image_url, objects_url, animation_url)
+        }, 2000)
     })
 
     
@@ -149,7 +150,7 @@
 
 
 <!-- Image Container -->
-<Canvas bind:show={show_image}/>
+<Canvas bind:show={show_canvas}/>
 
 
 <style>
