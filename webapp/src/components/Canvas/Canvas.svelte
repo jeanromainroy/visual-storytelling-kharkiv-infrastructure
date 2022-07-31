@@ -12,7 +12,13 @@
 
     // variables
     let displayed_canvas = false;
+    let being_animated = false;
     let display = false;
+
+    // animation variables
+    let svg_elements = null;
+    let svg_infos = null;
+    let animation = null;
 
 
     function reset(){
@@ -35,10 +41,29 @@
     }
 
 
-    function animate(svg_elements, svg_infos, animation) {
+    function animate() {
+        
+        // check if already being animated
+        if (being_animated) { console.log('already being animated'); return; }
+        console.log('starting animation');
+
+        // set flag to true
+        being_animated = true;
+
+        // hide svg elements
+        svg_elements.forEach(svg_element => { svg_element.style.display = 'none'; });
 
         // clear Overlay
         overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
+
+        // get the length of the animate
+        const END_TIME_IN_MS = Math.max(...animation.map(step => step['START_TIME_IN_MS'])) + 3000;
+
+        // set flag to done when end time is reached
+        setTimeout(() => {
+            being_animated = false;
+        }, END_TIME_IN_MS);
+
 
         // go through animation
         animation.forEach(step => {
@@ -91,7 +116,6 @@
 
         // grab sections
         const section = document.querySelector("#canvas-container");
-        console.log(section)
 
         // init observer
         const observer = new IntersectionObserver(function(entries) {
@@ -108,9 +132,13 @@
     }
 
 
-    // on section change
+    // on canvas scrolled in view, animate objects
     $: if(displayed_canvas) {
-        console.log('salut');
+        animate();
+    }
+    // on canvas scrolled out of view, hide svg elements
+    $: if(!displayed_canvas) {
+        if (!being_animated && Array.isArray(svg_elements)) svg_elements.forEach(svg_element => { svg_element.style.display = 'none'; });
     }
     
     
@@ -125,12 +153,18 @@
         if (image_asset === undefined || image_asset === null) return;
 
         // load svg objects asset
-        const [svg_elements, svg_infos] = await load_svg_elements(objects_url);
-        if (svg_infos === undefined || svg_infos === null) return;
+        const [_svg_elements, _svg_infos] = await load_svg_elements(objects_url);
+        if (_svg_elements === undefined || _svg_elements === null || 
+            _svg_infos === undefined || _svg_infos === null) return;
 
         // load animation asset
-        const animation = await load_json(animation_url);
-        if (animation === undefined || animation === null) return;
+        const _animation = await load_json(animation_url);
+        if (_animation === undefined || _animation === null) return;
+
+        // set
+        svg_elements = _svg_elements;
+        svg_infos = _svg_infos;
+        animation = _animation;
 
         // compute width, height and rotation
         const image_width = image_asset.width;
@@ -196,9 +230,6 @@
 
             // resize svg div
             svg_div.setAttribute('transform', `scale(${resizeFactor})`);
-
-            // animate objects
-            animate(svg_elements, svg_infos, animation);
 
         }, 150);
     }
