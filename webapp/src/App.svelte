@@ -24,17 +24,23 @@
     let highlight_marker_timeline;
 
     // canvas variables
-    let show_canvas;
+    let show_canvas, hide_canvas;
 
     // app variables
-    let hide = true;
+    let _freeze = false;
     let displayed_section_id = null;
 
 
-    async function init_map() {
+    function freeze() {
+        _freeze = true;
+    }
 
-        // set hide flag
-        hide = true;
+    function unfreeze() {
+        _freeze = false;
+    }
+
+
+    async function init_map() {
 
         // draw incidents
         draw_markers(incidents['features'])
@@ -44,9 +50,6 @@
 
         // load images
         load_basemaps(load_image);
-        
-        // set hide flag
-        hide = false;
     }
     
 
@@ -96,13 +99,19 @@
 
     // on section change
     $: if(displayed_section_id) {
-        update(displayed_section_id, controls, animate_to_latlng, highlight_marker, show_canvas);
+        update(displayed_section_id, controls, animate_to_latlng, highlight_marker, show_canvas, hide_canvas, freeze, unfreeze);
     }
 
 </script>
 
 
-<div class="fade-in" style="z-index: 2;">
+<!-- Used to freeze scrolling -->
+{#if _freeze}
+    <div id="freeze" style="z-index: 9;"></div>
+{/if}
+
+
+<div style="z-index: 1;">
     <!-- 3D Map Background -->
     <Map
         bind:ready={map_ready} 
@@ -116,7 +125,7 @@
 
 
 <!-- Story Container -->
-<div id="scroll-container" style="z-index: 3;">
+<div id="scroll-container" style="z-index: 2;">
 
     <!-- Zoomed Out -->
     <section data-id="1">
@@ -141,7 +150,7 @@
 
 
 <!-- Image Container -->
-<Canvas bind:show={show_canvas}/>
+<Canvas bind:show={show_canvas} bind:hide={hide_canvas}/>
 
 
 <style>
@@ -171,7 +180,7 @@
         bottom: 0;
         width: 100%;
 		text-align: center;
-        overflow-y: scroll;
+        overflow-y: hidden;
         overflow-x: hidden;
         z-index: 1;
 	}
@@ -205,45 +214,13 @@
     }
 
 
-    /* --- Transtions --- */
-    .fade-in {
-        animation: fadeIn 1.5s;
-        -webkit-animation: fadeIn 1.5s;
-        -moz-animation: fadeIn 1.5s;
-        -o-animation: fadeIn 1.5s;
-        -ms-animation: fadeIn 1.5s;
-        opacity: 1.0;
+    /* Freeze */
+    #freeze {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        right: 0px;
+        bottom: 0px;
     }
 
-    /* --- Fade in --- */
-    @keyframes fadeIn {
-        0% {opacity:0;}
-        50% {opacity:0;}
-        100% {opacity:1;}
-    }
-
-    @-moz-keyframes fadeIn {
-        0% {opacity:0;}
-        50% {opacity:0;}
-        100% {opacity:1;}
-    }
-
-    @-webkit-keyframes fadeIn {
-        0% {opacity:0;}
-        50% {opacity:0;}
-        100% {opacity:1;}
-    }
-
-    @-o-keyframes fadeIn {
-        0% {opacity:0;}
-        50% {opacity:0;}
-        100% {opacity:1;}
-    }
-
-    @-ms-keyframes fadeIn {
-        0% {opacity:0;}
-        50% {opacity:0;}
-        100% {opacity:1;}
-    }
-    
 </style>

@@ -13,7 +13,6 @@
     // variables
     let displayed_canvas = false;
     let being_animated = false;
-    let display = false;
 
     // animation variables
     let image_url = null;
@@ -23,7 +22,7 @@
     let animation = null;
 
 
-    function reset(){
+    function reset_canvas() {
 
         // Get the image canvas
         imgCanvas = document.getElementById('img-canvas')
@@ -40,6 +39,29 @@
         // clear the canvas
         imgContext.clearRect(0, 0, canvasWidth, canvasHeight)
         overlayContext.clearRect(0, 0, canvasWidth, canvasHeight)
+    }
+
+
+    function reset_all(){
+
+        // reset canvas
+        reset_canvas();
+
+        // scroll to the top
+        document.getElementById('image_box').scrollTo(0, 0)
+
+        // clear the svg objects
+        document.getElementById('svg-div').innerHTML = '';
+
+        // reset variables
+        displayed_canvas = false;
+        being_animated = false;
+
+        image_url = null;
+        video_url = null;
+        svg_elements = null;
+        svg_infos = null;
+        animation = null;
     }
 
 
@@ -76,6 +98,10 @@
             // animate
             setTimeout(() => {
 
+                // ensure we have our svg elements
+                if (!Array.isArray(svg_elements)) return;
+
+                // populate
                 svg_elements.forEach((svg_element, i) => {
 
                     // destructure info
@@ -85,7 +111,7 @@
                     if (!SVG_ELEMENTS.includes(id)) return;
 
                     // display
-                    svg_element.style.display = 'block';
+                    svg_element.style.display = 'inline';
 
                     // set animation class
                     if (opacity === 1.0) {
@@ -140,15 +166,17 @@
     }
     // on canvas scrolled out of view, hide svg elements
     $: if(!displayed_canvas) {
-        if (!being_animated && Array.isArray(svg_elements)) svg_elements.forEach(svg_element => { svg_element.style.display = 'none'; });
+        if (!being_animated && Array.isArray(svg_elements)) {
+            svg_elements.forEach(svg_element => { svg_element.style.display = 'none'; });
+        }
     }
     
     
     // function to launch the image box
     export async function show(_image_url, objects_url, animation_url, _video_url){
 
-        // set display flag
-        display = false;
+        // reset everything
+        reset_all();
 
         // load image asset
         const image_asset = await load_image(_image_url);
@@ -178,14 +206,17 @@
         canvasWidth = image_width;
         canvasHeight = image_height;
 
-        // set display flag
-        display = true;
+        // set visibility
+        document.getElementById('image_box').style.visibility = 'visible';
+
+        // set fade in
+        document.getElementById('image_box').style.opacity = '1.0';
 
         // draw
         setTimeout(async () => {
 
             // reset canvas
-            reset();
+            reset_canvas();
 
             // set dimensions of canvas
             const { clientWidth, clientHeight } = document.getElementById('canvas-container');
@@ -238,6 +269,29 @@
         }, 150);
     }
 
+    
+    // function to hide the image box
+    export function hide(){
+
+        // grab element
+        const el = document.getElementById('image_box');
+
+        // ensure it is visible
+        if (el.style.visibility !== 'visible') return;
+
+        // set fade out
+        document.getElementById('image_box').style.opacity = '0.0';
+
+        // wait for fade out to be done, and reset variables
+        setTimeout(() => {
+
+            // set visibility
+            document.getElementById('image_box').style.visibility = 'hidden';
+
+            reset_all();
+        }, 1500);
+    }
+
 
     // on UI loaded
     onMount(() => {
@@ -249,7 +303,7 @@
 
 
 <!-- The Image Box -->
-<aside id="image_box" style="display: {display ? 'block' : 'none'}" class="fadein-15-10">
+<aside id="image_box" class="fade-in-out">
 
     <!-- Container #1 -->
     <div id="video-container" class="container">
@@ -270,8 +324,8 @@
 
     <!-- Container #3 -->
     <div id="after-container" class="container">
-        
     </div>
+
 </aside>
 
 
@@ -280,6 +334,8 @@
     /***** Pop Up Image Box *****/
     #image_box {
         position: absolute;
+        visibility: hidden;
+        opacity: 0.0;
         top: 8vh;
         left: 8vh;
         right: 8vh;
@@ -287,8 +343,10 @@
         border: 1px solid #999;
         padding: 32px;
         background-color: rgb(255, 255, 255);
-        z-index: 9;
         overflow-y: scroll;
+        overflow-x: hidden;
+        scroll-snap-type: y mandatory;
+        transition: opacity 1500ms ease-in-out;
     }
 
     #image_box .container {
@@ -297,6 +355,7 @@
         align-items: center;
         width: 100%;
         height: 100%;
+        scroll-snap-align: center;
     }
 
     #image_box canvas {
@@ -311,14 +370,15 @@
     }
 
     video {
-        width: 70vw;
-        height: auto;
+        max-height: 60vh;
+        max-width: 60vw;
     }
 
 
     /* --------------------------------------------------------------------------- */
     /* --------------------------------------------------------------------------- */
     /* --------------------------------------------------------------------------- */
+
 
     :global(.fadein-15-10) {
         animation: fadeIn10 1.5s;
@@ -337,6 +397,12 @@
     }
 
     /* --- Fade in --- */
+    @keyframes fadeOut10 {
+        0% {opacity:1;}
+        100% {opacity:0;}
+    }
+
+
     @keyframes fadeIn10 {
         0% {opacity:0;}
         100% {opacity:1;}

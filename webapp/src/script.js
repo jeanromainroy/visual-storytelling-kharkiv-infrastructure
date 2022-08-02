@@ -12,13 +12,18 @@ import incidents from '../dist/incidents.json';
 
 
 
-export async function update(section_id, controls, move_to_func, highlight_func, show_canvas) {
+export async function update(section_id, controls, move_to_func, highlight_func, show_canvas, hide_canvas, freeze, unfreeze) {
 
     // log
     console.log(`Section ${section_id} as just become visible in screen`);
 
+    // freeze 
+    freeze();
 
     if (+section_id === 1) {
+        
+        // hide canvas
+        hide_canvas();
 
         // zoom back
         await move_to_func(CENTER_LAT, CENTER_LNG, START_RADIUS);
@@ -32,6 +37,9 @@ export async function update(section_id, controls, move_to_func, highlight_func,
 
         // turn off rotation
         controls.autoRotate = false;
+
+        // hide canvas
+        hide_canvas();
 
         // clear highlighted markers
         highlight_func(); 
@@ -69,6 +77,9 @@ export async function update(section_id, controls, move_to_func, highlight_func,
             break;
         }
     }
+
+    // unfreeze 
+    unfreeze();
 }
 
 

@@ -122,7 +122,6 @@
         height: 30px;
         display: flex;
         justify-content: center;
-        z-index: 3;
         padding-top: 20px;
         background-color: #fff;
         /* border-top: 0.5px solid #000; */
